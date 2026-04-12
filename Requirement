@@ -1,0 +1,239 @@
+You are tasked with building a modular AI-driven Change Orchestration Platform (backend + frontend) using agent-based architecture.
+
+## 🎯 SCOPE
+Implement ONLY up to:
+- Step 1: Requirement Gathering Agent
+- Step 2: Deep Research Agent
+- Step 3(a): Product Canvas Generator Agent
+
+Refer to the full user journey below for context (do not implement beyond 3a).
+
+---
+
+## 🧩 SYSTEM ARCHITECTURE
+
+### Tech Stack
+- Backend: Python (FastAPI)
+- Frontend: React (Vite)
+- AI Orchestration: LangChain
+- Web Search: Tavily API
+- Model Routing: MCP (configurable for OpenAI / local models)
+- Storage: In-memory (design for future PostgreSQL support)
+
+---
+
+## 📚 KNOWLEDGE SOURCES (RAG INTEGRATION)
+
+A separate RAG system exists. You must integrate via API.
+
+### RAG Endpoint (mock this as configurable):
+
+POST /rag/query
+
+
+
+
+### Available Knowledge:
+1. Product Canvas Knowledge  
+2. RBI Guidelines  
+3. Product Documents Knowledge  
+4. UPI Codebase Knowledge  
+
+👉 Build a **RAG Client Agent** that:
+- Accepts query + context
+- Calls RAG API
+- Returns enriched context to other agents
+
+---
+
+## 🤖 AGENT DESIGN
+
+### 🔹 Agent 1: Requirement Gathering Agent
+
+#### Objective:
+Interact with user to collect structured requirements for Product Canvas.
+
+#### Flow:
+1. Ask user:
+   - “What feature/change would you like to propose?”
+2. Interpret user input (even if vague)
+3. Internally use a **Reasoning Sub-Agent** to:
+   - Identify missing fields
+   - Generate clarification questions
+
+#### Constraints:
+- Ask **max 5 clarification questions**
+- Questions must cover all missing sections
+
+#### Output Structure (MANDATORY):
+
+
+
+  {
+need: {...},
+market_view: {...},
+scalability: {...},
+success_kpis: {...},
+risks: {...},
+compliance: {...}
+}
+
+
+
+
+#### Sections to Fill:
+
+1. Need
+- Why build this?
+- Differentiation (incremental/exponential)
+- UX delta
+- Cannibalization impact
+- What if not built?
+
+2. Market View
+- Ecosystem response
+- Ecosystem effort/cost
+- Regulatory (RBI) view
+
+3. Scalability
+- Demand/supply anchors
+- Impact (users, revenue, time)
+- Product operations
+
+4. Success KPIs
+- Trust (grievance)
+- Day-0 automation
+- SGF / FRM impact
+- Infra + txn impact
+
+5. Risks
+- Fraud/abuse
+- Infosec/privacy
+- Second-order effects
+
+6. Compliance
+
+#### Data Sources:
+- User input
+- RAG API
+- Tavily web search
+
+---
+
+### 🔹 Agent 2: Deep Research Agent
+
+#### Objective:
+Generate a **comprehensive research report** based on:
+- Output from Requirement Agent
+- RAG data
+- Web search
+
+#### Capabilities:
+- Expand each section deeply
+- Add insights, benchmarks, and regulatory considerations
+- Validate assumptions
+
+#### UI Interaction:
+- Accept user feedback input
+- Regenerate report iteratively
+- Maintain version memory
+
+#### Output:
+Structured detailed report covering all sections from Agent 1
+
+---
+
+### 🔹 Agent 3: Product Canvas Generator
+
+#### Objective:
+Generate editable Product Canvas document
+
+#### Features:
+1. Convert research output → Product Canvas format
+2. Each section:
+   - Editable
+   - Regeneratable independently
+3. Maintain memory of previous versions
+
+#### Regeneration Rules:
+- Preserve unchanged sections
+- Only update requested sections
+- Maintain consistency across sections
+
+#### Export قابلیت:
+- Download as:
+  - DOCX
+  - PDF
+
+---
+
+## 🔄 INTER-AGENT FLOW
+
+1. Requirement Agent → structured JSON
+2. Deep Research Agent → enriched report
+3. Product Canvas Agent → final document
+
+---
+
+## 🧠 MEMORY DESIGN
+
+- Maintain session memory per user
+- Track:
+  - User inputs
+  - Agent outputs
+  - Feedback iterations
+- Ensure context is reused across regenerations
+
+---
+
+## 🖥️ FRONTEND REQUIREMENTS
+
+Build simple UI with:
+1. Input form (feature request)
+2. Chat-style clarification (Agent 1)
+3. Research report view (Agent 2)
+4. Feedback input box
+5. Product Canvas editor (Agent 3)
+6. Download buttons (DOCX/PDF)
+
+---
+
+## ⚙️ CONFIGURABILITY
+
+- Model provider via MCP (OpenAI / local)
+- RAG endpoint configurable
+- Tavily API configurable
+
+---
+
+## 🚫 NON-GOALS
+
+Do NOT implement:
+- Code generation
+- Deployment pipeline
+- A2A communication
+- Certification steps
+
+---
+
+## 📌 USER JOURNEY CONTEXT
+
+Use this as reference only:
+:contentReference[oaicite:0]{index=0}
+
+---
+
+## ✅ EXPECTED OUTPUT
+
+- Modular FastAPI backend
+- React frontend (Vite)
+- 3 working agents
+- RAG integration stub
+- End-to-end flow from input → product canvas
+
+---
+
+Focus on:
+- Clean agent separation
+- Iterative refinement loops
+- Strong prompt engineering inside each agent  
