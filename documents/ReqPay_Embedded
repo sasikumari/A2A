@@ -1,0 +1,207 @@
+0 10.200.123.58 20100 [25/Jul/2024:16:01:12:879000000] Source IP:10.20.41.7,Hit URI:/upi/ReqPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha Tracking ID:CHCLTRUUPIAP23-19100-6vqv7ZLzF
+0 10.200.123.58 20100 [25/Jul/2024:16:01:12:888000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:ReqPay xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="5z68jRTbjsje5CSRZtK"
+         orgId="159047"
+         ts="2022-03-03T14:20:00+05:30"
+         ver="2.0"/>
+   <Meta>
+      <Tag name="PAYREQSTART" value="2021-06-23T10:04:49+05:30"/>
+      <Tag name="PAYREQEND" value="2021-06-23T10:04:49+05:30"/>
+   </Meta>
+   <Txn custRef="420716946114"
+        id="XXX0000000000001vRTvznNrSR2X2zZ6eha"
+        initiationMode="33"
+        note="jhwk"
+        orgTxnId=""
+        purpose="83"
+        refId="Ref"
+        refUrl="https://www.sbi.co.in/"
+        ts="2022-03-03T14:20:00+05:30"
+        type="PAY">
+      <RiskScores>
+         <Score provider="psp1" type="TXNRISK" value="00090"/>
+         <Score provider="psp3" type="TXNR2" value="00090"/>
+      </RiskScores>
+      <Rules>
+         <Rule name="EXPIREAFTER" value="1"/>
+         <Rule name="MINAMOUNT" value="0.00"/>
+      </Rules>
+   </Txn>
+   <Payer addr="sammm@csb"
+          code="0000"
+          name="das"
+          seqNum="1"
+          type="PERSON">
+      <Info>
+         <Identity id="4576456446" type="PAN" verifiedName="das"/>
+         <Rating verifiedAddress="TRUE"/>
+      </Info>
+      <Device>
+         <Tag name="MOBILE" value="919801442442"/>
+         <Tag name="LOCATION" value="New Delhi"/>
+         <Tag name="IP" value="127.0.0.4"/>
+         <Tag name="TYPE" value="MOB"/>
+         <Tag name="ID" value="000000000002982"/>
+         <Tag name="OS" value="IOS"/>
+         <Tag name="APP" value="org.npci.upi.cat"/>
+         <Tag name="GEOCODE" value="19.0911 ,72.9231"/>
+      </Device>
+      <Ac addrType="ACCOUNT">
+         <Detail name="IFSC" value="CSBK0003478"/>
+         <Detail name="ACTYPE" value="SAVINGS"/>
+         <Detail name="ACNUM" value="987654111988"/>
+      </Ac>
+      <Creds>
+         <Cred subType="MPIN" type="PIN">
+            <Data code="NPCI" ki="20150822">2.0</Data>
+         </Cred>
+      </Creds>
+      <Amount curr="INR" value="500.00"/>
+   </Payer>
+   <Payees>
+      <Payee addr="shibb@andb"
+             code="6013"
+             name="abc"
+             seqNum="1"
+             type="ENTITY">
+         <Ac addrType="ACCOUNT">
+            <Detail name="IFSC" value="ANDB0123456"/>
+            <Detail name="ACTYPE" value="SAVINGS"/>
+            <Detail name="ACNUM" value="8876540000000000"/>
+         </Ac>
+         <Amount curr="INR" value="500.00"/>
+      </Payee>
+   </Payees>
+   </ns2:ReqPay>
+
+0 10.200.123.58 20100 [25/Jul/2024:16:01:13:432000000] Acknowledgement sent for Transaction Id :XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:13:433000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="ReqPay" reqMsgId="5z68jRTbjsje5CSRZtK" ts="2024-07-25T16:01:12+05:30"/>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:233000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/ReqPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:233000000] Original outbound Request=
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:233000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqPay xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-25T16:01:15+05:30" orgId="NPCI" msgId="5ADoaEkLS"/><Meta><Tag name="PAYREQSTART" value="2021-06-23T10:04:49+05:30"/><Tag name="PAYREQEND" value="2021-06-23T10:04:49+05:30"/></Meta><Txn id="XXX0000000000001vRTvznNrSR2X2zZ6eha" note="jhwk" refId="Ref" refUrl="https://www.sbi.co.in/" ts="2022-03-03T14:20:00+05:30" type="DEBIT" custRef="420716946114" initiationMode="33" subType="PAY" purpose="83"><RiskScores><Score provider="psp1" type="TXNRISK" value="00090"/><Score provider="psp3" type="TXNR2" value="00090"/><Score provider="NPCI" type="TXNRISK" value="00999"/></RiskScores><Rules><Rule name="EXPIREAFTER" value="1"/><Rule name="MINAMOUNT" value="0.00"/></Rules></Txn><Payer addr="sammm@csb" name="das" seqNum="1" type="PERSON" code="0000"><Info><Identity type="PAN" verifiedName="das" id="4576456446"/><Rating verifiedAddress="TRUE"></Rating></Info><Device><Tag name="MOBILE" value="919801442442"/><Tag name="LOCATION" value="New Delhi"/><Tag name="IP" value="127.0.0.4"/><Tag name="TYPE" value="MOB"/><Tag name="ID" value="000000000002982"/><Tag name="OS" value="IOS"/><Tag name="APP" value="org.npci.upi.cat"/><Tag name="GEOCODE" value="19.0911 ,72.9231"/></Device><Ac addrType="ACCOUNT"><Detail name="IFSC" value="CSBK0003478"/><Detail name="ACTYPE" value="SAVINGS"/><Detail name="ACNUM" value="987654111988"/></Ac><Creds><Cred type="PIN" subType="MPIN"></Data></Cred></Creds><Amount value="500.00" curr="INR"/></Payer><Payees><Payee addr="shibb@andb" name="abc" seqNum="1" type="ENTITY" code="6013"><Ac addrType="ACCOUNT"><Detail name="IFSC" value="ANDB0123456"/><Detail name="ACTYPE" value="SAVINGS"/><Detail name="ACNUM" value="8876540000000000"/></Ac><Amount value="500.00" curr="INR"/></Payee></Payees></ns2:ReqPay>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:371000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/ReqPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="REQ_PAY" reqMsgId="5ADoaEkLS" ts="2024-07-25T16:00:45+05:30"/>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:495000000] Source IP:10.20.41.6,Hit URI:/upi/RespPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha Tracking ID:CHCLTRUUPIAP23-19100-6vqv811Co
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:496000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespPay xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="CSB0000000000005t0xf7oRsPPLd50skcE"
+         orgId="159047"
+         ts="2024-07-25T16:00:45+05:30"
+         ver="2.0"/>
+   <Txn custRef="420716946114"
+        id="XXX0000000000001vRTvznNrSR2X2zZ6eha"
+        initiationMode="33"
+        note="jhwk"
+        purpose="83"
+        refId="Ref"
+        refUrl="https://www.sbi.co.in/"
+        subType="PAY"
+        ts="2022-03-03T14:20:00+05:30"
+        type="DEBIT">
+      <RiskScores>
+         <Score provider="psp1" type="TXNRISK" value="00090"/>
+         <Score provider="psp3" type="TXNR2" value="00090"/>
+         <Score provider="NPCI" type="TXNRISK" value="00999"/>
+      </RiskScores>
+      <Rules>
+         <Rule name="EXPIREAFTER" value="1"/>
+         <Rule name="MINAMOUNT" value="0.00"/>
+      </Rules>
+   </Txn>
+   <Resp reqMsgId="5ADoaEkLS" result="SUCCESS">
+      <Ref IFSC="CSBK0003478"
+           acNum="987654111988"
+           accType="SAVINGS"
+           addr="sammm@csb"
+           approvalNum="654321"
+           code="0000"
+           regName="das"
+           respCode="00"
+           seqNum="1"
+           settAmount="500.00"
+           settCurrency="INR"
+           type="PAYER"/>
+   </Resp>
+</ns2:RespPay>
+
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:597000000] Acknowledgement sent for Transaction Id :XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:598000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespPay" reqMsgId="CSB0000000000005t0xf7oRsPPLd50skcE" ts="2024-07-25T16:01:16+05:30"/>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:692000000] Message for outbound request (to 159011) :https://10.20.41.6:10012/upi/ReqPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:693000000] Original outbound Request=
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:693000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqPay xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-25T16:01:16+05:30" orgId="NPCI" msgId="5ADoaEKMN"/><Meta><Tag name="PAYREQSTART" value="2021-06-23T10:04:49+05:30"/><Tag name="PAYREQEND" value="2021-06-23T10:04:49+05:30"/></Meta><Txn id="XXX0000000000001vRTvznNrSR2X2zZ6eha" note="jhwk" refId="Ref" refUrl="https://www.sbi.co.in/" ts="2022-03-03T14:20:00+05:30" type="CREDIT" custRef="420716946114" initiationMode="33" subType="PAY" purpose="83"><RiskScores><Score provider="psp1" type="TXNRISK" value="00090"/><Score provider="psp3" type="TXNR2" value="00090"/><Score provider="NPCI" type="TXNRISK" value="00999"/></RiskScores><Rules><Rule name="EXPIREAFTER" value="1"/><Rule name="MINAMOUNT" value="0.00"/></Rules></Txn><Payer addr="sammm@csb" name="das" seqNum="1" type="PERSON" code="0000"><Info><Identity type="PAN" verifiedName="das" id="4576456446"/><Rating verifiedAddress="TRUE"></Rating></Info><Device><Tag name="MOBILE" value="919801442442"/><Tag name="LOCATION" value="New Delhi"/><Tag name="IP" value="127.0.0.4"/><Tag name="TYPE" value="MOB"/><Tag name="ID" value="000000000002982"/><Tag name="OS" value="IOS"/><Tag name="APP" value="org.npci.upi.cat"/><Tag name="GEOCODE" value="19.0911 ,72.9231"/></Device><Ac addrType="ACCOUNT"><Detail name="IFSC" value="CSBK0003478"/><Detail name="ACTYPE" value="SAVINGS"/><Detail name="ACNUM" value="987654111988"/></Ac><Amount value="500.00" curr="INR"/></Payer><Payees><Payee addr="shibb@andb" name="abc" seqNum="1" type="ENTITY" code="6013"><Ac addrType="ACCOUNT"><Detail name="IFSC" value="ANDB0123456"/><Detail name="ACTYPE" value="SAVINGS"/><Detail name="ACNUM" value="8876540000000000"/></Ac><Amount value="500.00" curr="INR"/></Payee></Payees></ns2:ReqPay>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:16:824000000] Acknowledgement Received for :https://10.20.41.6:10012/upi/ReqPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="REQ_PAY" reqMsgId="5ADoaEKMN" ts="2024-07-25T16:00:45+05:30"/>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:009000000] Source IP:10.20.41.6,Hit URI:/upi/RespPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha Tracking ID:CHCLTRUUPIAP23-19100-6vqv81rDj
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:010000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespPay xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="ANB0000000000005t0xf7oRsPPLd53XFKx"
+         orgId="159011"
+         ts="2024-07-25T16:00:45+05:30"
+         ver="2.0"/>
+   <Txn custRef="420716946114"
+        id="XXX0000000000001vRTvznNrSR2X2zZ6eha"
+        initiationMode="33"
+        note="jhwk"
+        purpose="83"
+        refId="Ref"
+        refUrl="https://www.sbi.co.in/"
+        subType="PAY"
+        ts="2022-03-03T14:20:00+05:30"
+        type="CREDIT">
+      <RiskScores>
+         <Score provider="psp1" type="TXNRISK" value="00090"/>
+         <Score provider="psp3" type="TXNR2" value="00090"/>
+         <Score provider="NPCI" type="TXNRISK" value="00999"/>
+      </RiskScores>
+      <Rules>
+         <Rule name="EXPIREAFTER" value="1"/>
+         <Rule name="MINAMOUNT" value="0.00"/>
+      </Rules>
+   </Txn>
+   <Resp reqMsgId="5ADoaEKMN" result="SUCCESS">
+      <Ref IFSC="ANDB0123456"
+           acNum="8876540000000000"
+           accType="SAVINGS"
+           addr="shibb@andb"
+           approvalNum="654321"
+           code="0000"
+           regName="abc"
+           respCode="00"
+           seqNum="1"
+           settAmount="500.00"
+           settCurrency="INR"
+           type="PAYEE"/>
+   </Resp>
+</ns2:RespPay>
+
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:044000000] Acknowledgement sent for Transaction Id :XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:044000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespPay" reqMsgId="ANB0000000000005t0xf7oRsPPLd53XFKx" ts="2024-07-25T16:01:17+05:30"/>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:087000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/RespPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:087000000] Original outbound Request=
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:087000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:RespPay xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-25T16:01:17+05:30" orgId="NPCI" msgId="5ADoaFaNI"/><Txn id="XXX0000000000001vRTvznNrSR2X2zZ6eha" note="jhwk" refId="Ref" refUrl="https://www.sbi.co.in/" ts="2022-03-03T14:20:00+05:30" type="PAY" custRef="420716946114" initiationMode="33" purpose="83"><RiskScores><Score provider="psp1" type="TXNRISK" value="00090"/><Score provider="psp3" type="TXNR2" value="00090"/><Score provider="NPCI" type="TXNRISK" value="00999"/></RiskScores></Txn><Resp reqMsgId="5z68jRTbjsje5CSRZtK" result="SUCCESS"><Ref type="PAYER" seqNum="1" addr="sammm@csb" settAmount="500.00" settCurrency="INR" approvalNum="654321" respCode="00" regName="das" orgAmount="500.00" acNum="987654111988" IFSC="CSBK0003478" code="0000" accType="SAVINGS"/><Ref type="PAYEE" seqNum="1" addr="shibb@andb" settAmount="500.00" settCurrency="INR" approvalNum="654321" respCode="00" regName="abc" orgAmount="500.00" acNum="8876540000000000" IFSC="ANDB0123456" code="6013" accType="SAVINGS"/></Resp></ns2:RespPay>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:137000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/RespPay/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="RESP_PAY" reqMsgId="5ADoaFaNI" ts="2024-07-25T16:00:45+05:30"/>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:146000000] Message for outbound request (to 159011) :https://10.20.41.6:10012/upi/ReqTxnConfirmation/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:147000000] Original outbound Request=
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:147000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqTxnConfirmation xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-25T16:01:17+05:30" orgId="NPCI" msgId="5ADoaFaNK"/><Txn id="XXX0000000000001vRTvznNrSR2X2zZ6eha" note="jhwk" refId="Ref" refUrl="https://www.sbi.co.in/" ts="2022-03-03T14:20:00+05:30" type="TxnConfirmation" orgTxnId="XXX0000000000001vRTvznNrSR2X2zZ6eha" custRef="420716946114" initiationMode="33" purpose="83"/><TxnConfirmation note="jhwk" orgStatus="SUCCESS" type="PAY"><Ref type="PAYEE" seqNum="1" addr="shibb@andb" settAmount="500.00" settCurrency="INR" approvalNum="654321" respCode="00" regName="abc" orgAmount="500.00" acNum="8876540000000000" IFSC="ANDB0123456" code="6013" accType="SAVINGS"/></TxnConfirmation></ns2:ReqTxnConfirmation>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:228000000] Acknowledgement Received for :https://10.20.41.6:10012/upi/ReqTxnConfirmation/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="ReqTxnConfirmation" reqMsgId="5ADoaFaNK" ts="2024-07-25T16:00:46+05:30"/>
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:306000000] Source IP:10.20.41.6,Hit URI:/upi/RespTxnConfirmation/2.0/urn:txnid:XXX0000000000001vRTvznNrSR2X2zZ6eha Tracking ID:CHCLTRUUPIAP23-19100-6vqv81rDk
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:307000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespTxnConfirmation xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="ANB0000000000005t0xf7oRsPPLd565qka"
+         orgId="159011"
+         ts="2024-07-25T16:00:46+05:30"
+         ver="2.0"/>
+   <Txn custRef="420716946114"
+        id="XXX0000000000001vRTvznNrSR2X2zZ6eha"
+        initiationMode="33"
+        note="jhwk"
+        orgTxnId="XXX0000000000001vRTvznNrSR2X2zZ6eha"
+        purpose="83"
+        refId="Ref"
+        refUrl="https://www.sbi.co.in/"
+        ts="2022-03-03T14:20:00+05:30"
+        type="TxnConfirmation"/>
+   <Resp reqMsgId="5ADoaFaNK" result="SUCCESS"/>
+</ns2:RespTxnConfirmation>
+
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:309000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR2X2zZ6eha
+0 10.200.123.58 20100 [25/Jul/2024:16:01:17:309000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespTxnConfirmation" reqMsgId="ANB0000000000005t0xf7oRsPPLd565qka" ts="2024-07-25T16:01:17+05:30"/>                  

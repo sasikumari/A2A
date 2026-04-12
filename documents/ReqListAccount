@@ -1,0 +1,80 @@
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:831000000] Source IP:10.20.41.7,Hit URI:/upi/ReqListAccount/2.0/urn:txnid:XXX0000000000001vRTvznNrSR39uZvE4vu Tracking ID:CHCLTRUUPIAP23-19100-6vzkkLNKI
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:831000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:ReqListAccount xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="AXI25728cbbcaab46f49487da600120af95"
+         orgId="159047"
+         ts="2024-07-30T17:53:23+05:30"
+         ver="2.0"/>
+   <Txn id="XXX0000000000001vRTvznNrSR39uZvE4vu"
+        note="emb"
+        purpose="83"
+        refId="0"
+        refUrl="http://upi"
+        ts="2017-01-23T14:16:18.622+05:30"
+        type="ListAccount"/>
+   <Payer aadhaarConsent="N"
+          addr="shivdeep@csb"
+          code="0000"
+          name="shiv"
+          seqNum="1"
+          type="PERSON">
+      <Device>
+         <Tag name="MOBILE" value="917529052905"/>
+         <Tag name="GEOCODE" value="19.0911 ,72.9208"/>
+         <Tag name="LOCATION" value="New Delhi"/>
+         <Tag name="IP" value="127.0.0.4"/>
+         <Tag name="TYPE" value="Embedded"/>
+         <Tag name="ORGIDPSPe" value="159047"/>
+         <Tag name="ID" value="12345678901234567890123456789012345"/>
+         <Tag name="OS" value="iOS"/>
+         <Tag name="APP" value="1244.0"/>
+         <Tag name="CAPABILITY" value="wdq"/>
+      </Device>
+      <Ac addrType="ORG">
+         <Detail name="ORGID" value="159047"/>
+      </Ac>
+   </Payer>
+   <Link type="MOBILE" value="917529052905"/>
+</ns2:ReqListAccount>
+
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:839000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR39uZvE4vu
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:839000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="ReqListAccount" reqMsgId="AXI25728cbbcaab46f49487da600120af95" ts="2024-07-30T17:53:24+05:30"/>
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:848000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/ReqListAccount/2.0/urn:txnid:XXX0000000000001vRTvznNrSR39uZvE4vu
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:848000000] Original outbound Request=
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:848000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqListAccount xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-30T17:53:24+05:30" orgId="NPCI" msgId="5AMdnof2k"/><Txn id="XXX0000000000001vRTvznNrSR39uZvE4vu" note="emb" refId="0" refUrl="http://upi" ts="2017-01-23T14:16:18.622+05:30" type="ListAccount" purpose="83"/><Payer addr="shivdeep@csb" name="shiv" seqNum="1" type="PERSON" code="0000" aadhaarConsent="N"><Device><Tag name="MOBILE" value="917529052905"/><Tag name="GEOCODE" value="19.0911 ,72.9208"/><Tag name="LOCATION" value="New Delhi"/><Tag name="IP" value="127.0.0.4"/><Tag name="TYPE" value="Embedded"/><Tag name="ORGIDPSPe" value="159047"/><Tag name="ID" value="12345678901234567890123456789012345"/><Tag name="OS" value="iOS"/><Tag name="APP" value="1244.0"/><Tag name="CAPABILITY" value="wdq"/></Device><Ac addrType="ORG"><Detail name="ORGID" value="159047"/></Ac></Payer><Link type="MOBILE" value="917529052905"/></ns2:ReqListAccount>
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:872000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/ReqListAccount/2.0/urn:txnid:XXX0000000000001vRTvznNrSR39uZvE4vu : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="ReqListAccount" reqMsgId="5AMdnof2k" ts="2024-07-30T17:52:52+05:30"/>
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:936000000] Source IP:10.20.41.6,Hit URI:/upi/RespListAccount/2.0/urn:txnid:XXX0000000000001vRTvznNrSR39uZvE4vu Tracking ID:CHCLTRUUPIAP23-19100-6vzkkLNKJ
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:936000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespListAccount xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="CSB0000000000005t0xf7oRsPPXFu5HXGj"
+         orgId="159047"
+         ts="2024-07-30T17:52:52+05:30"
+         ver="2.0"/>
+   <Resp reqMsgId="5AMdnof2k" result="SUCCESS"/>
+   <Txn id="XXX0000000000001vRTvznNrSR39uZvE4vu"
+        note="emb"
+        refId="1"
+        refUrl="http://www.google.co.in/"
+        ts="2024-07-30T17:52:52+05:30"
+        type="ListAccount"/>
+   <AccountList>
+      <Account accRefNumber="0024054000009631"
+               accType="SAVINGS"
+               aeba="N"
+               ifsc="CSBK0003478"
+               maskedAccnumber="002405XXXXXXXX31"
+               mbeba="Y"
+               mmid="3004010"
+               name="ABC">
+         <CredsAllowed dLength="6" dType="Numeric" subType="SMS" type="OTP"/>
+         <CredsAllowed dLength="6" dType="Numeric" subType="MPIN" type="PIN"/>
+      </Account>
+   </AccountList>
+</ns2:RespListAccount>
+
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:942000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR39uZvE4vu
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:942000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespListAccount" reqMsgId="CSB0000000000005t0xf7oRsPPXFu5HXGj" ts="2024-07-30T17:53:24+05:30"/>
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:957000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/RespListAccount/2.0/urn:txnid:XXX0000000000001vRTvznNrSR39uZvE4vu
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:957000000] Original outbound Request=
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:957000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:RespListAccount xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-30T17:53:24+05:30" orgId="NPCI" msgId="5AMdnof2l"/><Resp reqMsgId="AXI25728cbbcaab46f49487da600120af95" result="SUCCESS" lk="" ac="" sa=""/><Txn id="XXX0000000000001vRTvznNrSR39uZvE4vu" note="emb" refId="1" refUrl="http://www.google.co.in/" ts="2024-07-30T17:52:52+05:30" type="ListAccount"/><AccountList><Account accType="SAVINGS" accRefNumber="0024054000009631" maskedAccnumber="002405XXXXXXXX31" ifsc="CSBK0003478" mmid="3004010" name="ABC" aeba="N" mbeba="Y"><CredsAllowed type="OTP" subType="SMS" dType="Numeric" dLength="6"/><CredsAllowed type="PIN" subType="MPIN" dType="Numeric" dLength="6"/></Account></AccountList></ns2:RespListAccount>
+0 10.200.123.58 20100 [30/Jul/2024:17:53:24:981000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/RespListAccount/2.0/urn:txnid:XXX0000000000001vRTvznNrSR39uZvE4vu : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="RespListAccount" reqMsgId="5AMdnof2l" ts="2024-07-30T17:52:52+05:30"/                        

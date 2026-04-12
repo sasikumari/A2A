@@ -1,0 +1,96 @@
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:037000000] Source IP:10.20.41.7,Hit URI:/upi/ReqLimitMgt/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36y69iVKo Tracking ID:CHCLTRUUPIAP23-19100-6vxutBS1b
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:039000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:ReqLimitMgt xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+         orgId="159047"
+         ts="2024-07-29T13:02:00+05:30"
+         ver="2.0"/>
+   <Txn id="XXX0000000000001vRTvznNrSR36y69iVKo"
+        initiationMode="33"
+        note="hi"
+        purpose="83"
+        refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+        refUrl="http://upi"
+        ts="2022-12-08T12:12:18"
+        type="DISPLAYLIMIT">
+      <Rules>
+         <Rule name="IFSC" value="CSBK0004378"/>
+         <Rule name="ACTYPE" value="SAVINGS"/>
+         <Rule name="ACNUM" value="117795514570"/>
+      </Rules>
+   </Txn>
+   <Payer addr="saumya@csb"
+          code="0000"
+          name="shiv"
+          seqNum="1"
+          type="PERSON">
+      <Device>
+         <Tag name="DEVICEID" value="3616d7b816c05115"/>
+         <Tag name="GEOCODE" value="123,456"/>
+         <Tag name="LOCATION" value="0.0,0.0"/>
+         <Tag name="IP" value="192.168.1.100"/>
+         <Tag name="TYPE" value="Embedded"/>
+         <Tag name="ID" value="3616d7b816c05115"/>
+         <Tag name="OS" value="Android"/>
+         <Tag name="APP" value="org.npci.bhim"/>
+         <Tag name="CAPABILITY" value="1"/>
+         <Tag name="ISP" value="BSNL MOBILE"/>
+         <Tag name="OSVERSION" value="AndroidVERSION"/>
+         <Tag name="MANUFACTURER" value="Xiaomi"/>
+         <Tag name="MODEL" value="Redmi Note 7 Pro"/>
+         <Tag name="PACKAGENAME" value="org.npci.bhim"/>
+         <Tag name="MVERSION" value="29"/>
+         <Tag name="MOBILE" value="919500000891"/>
+         <Tag name="USERCONSENT" value="Y"/>
+      </Device>
+      <Ac addrType="ORG">
+         <Detail name="ORGID" value="159047"/>
+      </Ac>
+   </Payer>
+</ns2:ReqLimitMgt>
+
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:051000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36y69iVKo
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:051000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="ReqLimitMgt" reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" ts="2024-07-29T13:02:01+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:062000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/ReqLimitMgt/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36y69iVKo
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:062000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:062000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqLimitMgt xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T13:02:01+05:30" orgId="NPCI" msgId="5AKnwfb27"/><Txn id="XXX0000000000001vRTvznNrSR36y69iVKo" note="hi" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="DISPLAYLIMIT" initiationMode="33" purpose="83"><Rules><Rule name="IFSC" value="CSBK0004378"/><Rule name="ACTYPE" value="SAVINGS"/><Rule name="ACNUM" value="117795514570"/></Rules></Txn><Payer addr="saumya@csb" name="shiv" seqNum="1" type="PERSON" code="0000"><Device><Tag name="DEVICEID" value="3616d7b816c05115"/><Tag name="GEOCODE" value="123,456"/><Tag name="LOCATION" value="0.0,0.0"/><Tag name="IP" value="192.168.1.100"/><Tag name="TYPE" value="Embedded"/><Tag name="ID" value="3616d7b816c05115"/><Tag name="OS" value="Android"/><Tag name="APP" value="org.npci.bhim"/><Tag name="CAPABILITY" value="1"/><Tag name="ISP" value="BSNL MOBILE"/><Tag name="OSVERSION" value="AndroidVERSION"/><Tag name="MANUFACTURER" value="Xiaomi"/><Tag name="MODEL" value="Redmi Note 7 Pro"/><Tag name="PACKAGENAME" value="org.npci.bhim"/><Tag name="MVERSION" value="29"/><Tag name="MOBILE" value="919500000891"/><Tag name="USERCONSENT" value="Y"/></Device><Ac addrType="ORG"><Detail name="ORGID" value="159047"/></Ac></Payer></ns2:ReqLimitMgt>
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:122000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/ReqLimitMgt/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36y69iVKo : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="ReqLimitMgt" reqMsgId="5AKnwfb27" ts="2024-07-29T13:01:29+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:207000000] Source IP:10.20.41.6,Hit URI:/upi/RespLimitMgt/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36y69iVKo Tracking ID:CHCLTRUUPIAP23-19100-6vxutBS1c
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:208000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespLimitMgt xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="CSB0000000000005t0xf7oRsPPUIAJZQhc"
+         orgId="159047"
+         ts="2024-07-29T13:01:29+05:30"
+         ver="2.0"/>
+   <Txn id="XXX0000000000001vRTvznNrSR36y69iVKo"
+        initiationMode="33"
+        note="hi"
+        purpose="83"
+        refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+        refUrl="http://upi"
+        ts="2022-12-08T12:12:18"
+        type="DISPLAYLIMIT"/>
+         code="0000"
+          name="shiv"
+          seqNum="1"
+          type="PERSON">
+      <Limit>
+         <limit name="Sachin" value="90.00"/>
+      </Limit>
+   </Payer>
+   <Resp reqMsgId="5AKnwfb27" result="SUCCESS">
+      <Ref accType="SAVINGS"
+           addr="saumya@csb"
+           approvalNum="654321"
+           seqNum="1"
+           type="PAYER"/>
+   </Resp>
+</ns2:RespLimitMgt>
+
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:222000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36y69iVKo
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:223000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespLimitMgt" reqMsgId="CSB0000000000005t0xf7oRsPPUIAJZQhc" ts="2024-07-29T13:02:01+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:242000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/RespLimitMgt/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36y69iVKo
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:242000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:242000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:RespLimitMgt xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T13:02:01+05:30" orgId="NPCI" msgId="5AKnwfb28"/><Txn id="XXX0000000000001vRTvznNrSR36y69iVKo" note="hi" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="DISPLAYLIMIT" initiationMode="33" purpose="83"/><Payer addr="saumya@csb" name="shiv" seqNum="1" type="PERSON" code="0000"><Limit><limit name="Sachin" value="90.00"/></Limit></Payer><Resp reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" result="SUCCESS"><Ref type="PAYER" seqNum="1" addr="saumya@csb" approvalNum="654321" accType="SAVINGS"/></Resp></ns2:RespLimitMgt>
+0 10.200.123.58 20100 [29/Jul/2024:13:02:01:279000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/RespLimitMgt/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36y69iVKo : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="RespLimitMgt" reqMsgId="5AKnwfb28" ts="2024-07-29T13:01:29+05:30"/>
+

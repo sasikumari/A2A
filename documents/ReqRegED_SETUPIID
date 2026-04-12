@@ -1,0 +1,78 @@
+0 10.200.123.58 20100 [29/Jul/2024:11:51:52:836000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:ReqRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+         orgId="159047"
+         ts="2024-07-29T11:51:51+05:30"
+         ver="2.0"/>
+   <Txn id="XXX0000000000001vRTvznNrSR36qGL6LPG"
+        initiationMode="33"
+        note=""
+        orgTxnId=""
+        purpose="83"
+        refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+        refUrl="http://upi"
+        startTime=""
+        ts="2022-12-08T12:12:18"
+        type="SETUPIID"
+        validityPeriod=""/>
+   <Payer addr="saumya@csb"
+          code="0000"
+          name="sam"
+          seqNum="1"
+          type="PERSON">
+      <Device>
+         <Tag name="ORGID" value="159047"/>
+         <Tag name="VPAEMBD" value="shalini@csb"/>
+         <Tag name="TIMESTAMP" value=""/>
+         <Tag name="DEVICECATEGORY" value=""/>
+         <Tag name="MOBILE" value="919006896598"/>
+         <Tag name="TYPE" value="CAR"/>
+      </Device>
+      <Ac addrType="ORG">
+         <Detail name="ORGID" value="159047"/>
+      </Ac>
+   </Payer>
+</ns2:ReqRegED>
+
+0 10.200.123.58 20100 [29/Jul/2024:11:51:52:840000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36qGL6LPG
+0 10.200.123.58 20100 [29/Jul/2024:11:51:52:841000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="ReqRegED" reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" ts="2024-07-29T11:51:52+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:11:51:52:851000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/ReqRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36qGL6LPG
+0 10.200.123.58 20100 [29/Jul/2024:11:51:52:851000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:11:51:52:851000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T11:51:52+05:30" orgId="NPCI" msgId="5AKlF8nfC"/><Txn id="XXX0000000000001vRTvznNrSR36qGL6LPG" note="" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="SETUPIID" orgTxnId="" initiationMode="33" purpose="83" startTime="" validityPeriod=""/><Payer addr="saumya@csb" name="sam" seqNum="1" type="PERSON" code="0000"><Device><Tag name="ORGID" value="159047"/><Tag name="VPAEMBD" value="shalini@csb"/><Tag name="TIMESTAMP" value=""/><Tag name="DEVICECATEGORY" value=""/><Tag name="MOBILE" value="919006896598"/><Tag name="TYPE" value="CAR"/></Device><Ac addrType="ORG"><Detail name="ORGID" value="159047"/></Ac></Payer></ns2:ReqRegED>
+0 10.200.123.58 20100 [29/Jul/2024:11:51:52:908000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/ReqRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36qGL6LPG : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="ReqRegED" reqMsgId="5AKlF8nfC" ts="2024-07-29T11:51:21+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:019000000] Source IP:10.20.41.6,Hit URI:/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36qGL6LPG Tracking ID:CHCLTRUUPIAP23-19100-6vxsCvu6I
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:020000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="CSB0000000000005t0xf7oRsPPUBboEkuN"
+         orgId="159047"
+         ts="2024-07-29T11:51:21+05:30"
+         ver="2.0"/>
+   <Resp reqMsgId="5AKlF8nfC" result="SUCCESS">
+      <Ref IFSC="CSBK0004378"
+           acNum="123456789"
+           accType="SAVINGS"
+           addr="saumya@csb"
+           code="0000"
+           respCode="00"
+           seqNum="1"
+           type="PAYER"/>
+   </Resp>
+   <Txn id="XXX0000000000001vRTvznNrSR36qGL6LPG"
+        initiationMode="33"
+        note=""
+        orgTxnId=""
+        purpose="83"
+        refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+        refUrl="http://upi"
+        startTime=""
+        ts="2022-12-08T12:12:18"
+        type="SETUPIID"
+        validityPeriod=""/>
+</ns2:RespRegED>
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:063000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36qGL6LPG
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:063000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespRegED" reqMsgId="CSB0000000000005t0xf7oRsPPUBboEkuN" ts="2024-07-29T11:51:53+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:080000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36qGL6LPG
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:080000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:080000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:RespRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T11:51:53+05:30" orgId="NPCI" msgId="5AKlF8Ngx"/><Resp reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" result="SUCCESS"><Ref type="PAYER" seqNum="1" addr="saumya@csb" respCode="00" acNum="123456789" IFSC="CSBK0004378" code="0000" accType="SAVINGS"/></Resp><Txn id="XXX0000000000001vRTvznNrSR36qGL6LPG" note="" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="SETUPIID" orgTxnId="" initiationMode="33" purpose="83" startTime="" validityPeriod=""/></ns2:RespRegED>
+0 10.200.123.58 20100 [29/Jul/2024:11:51:53:129000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36qGL6LPG : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="RespRegED" reqMsgId="5AKlF8Ngx" ts="2024-07-29T11:51:21+05:30"/>
+                                        

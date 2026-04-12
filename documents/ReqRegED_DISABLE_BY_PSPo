@@ -1,0 +1,85 @@
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:504000000] Source IP:10.20.41.7,Hit URI:/upi/ReqRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36SBTEZS8 Tracking ID:CHCLTRUUPIAP23-19100-6vxxQp3Ds
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:505000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:ReqRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+         orgId="159047"
+         ts="2024-07-29T16:16:11+05:30"
+         ver="2.0"/>
+   <Txn id="XXX0000000000001vRTvznNrSR36SBTEZS8"
+        initiationMode="33"
+        note="j"
+        purpose="83"
+        refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+        refUrl="http://upi"
+        ts="2022-12-08T12:12:18"
+        type="DISABLE">
+      <Rules>
+         <Rule name="VPAEMBD" value="dqd@csb"/>
+         <Rule name="MOBILE" value="919500000891"/>
+         <Rule name="DEVICECATEGORY" value="car"/>
+         <Rule name="TYPE" value="dq"/>
+         <Rule name="USERCONSENT" value="Y"/>
+         <Rule name="IFSC" value="CSBK0000382"/>
+         <Rule name="ACTYPE" value="SAVINGS"/>
+         <Rule name="ACNUM" value="3453454385"/>
+      </Rules>
+   </Txn>
+   <Payer addr="shivdeep@csb"
+          code="0000"
+          name="dsq"
+          seqNum="1"
+          type="PERSON">
+      <Device>
+         <Tag name="ORGID" value="159047"/>
+         <Tag name="TIMESTAMP" value="2022-12-08T12:12:18"/>
+         <Tag name="MOBILE" value="919500000892"/>
+         <Tag name="TYPE" value="car"/>
+      </Device>
+      <Ac addrType="ORG">
+         <Detail name="ORGID" value="159047"/>
+      </Ac>
+   </Payer>
+</ns2:ReqRegED>
+
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:521000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36SBTEZS8
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:521000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="ReqRegED" reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" ts="2024-07-29T16:16:12+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:528000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/ReqRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36SBTEZS8
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:528000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:528000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T16:16:12+05:30" orgId="NPCI" msgId="5AKqT1WD8"/><Txn id="XXX0000000000001vRTvznNrSR36SBTEZS8" note="j" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="DISABLE" initiationMode="33" purpose="83"><Rules><Rule name="VPAEMBD" value="dqd@csb"/><Rule name="MOBILE" value="919500000891"/><Rule name="DEVICECATEGORY" value="car"/><Rule name="TYPE" value="dq"/><Rule name="USERCONSENT" value="Y"/><Rule name="IFSC" value="CSBK0000382"/><Rule name="ACTYPE" value="SAVINGS"/><Rule name="ACNUM" value="3453454385"/></Rules></Txn><Payer addr="shivdeep@csb" name="dsq" seqNum="1" type="PERSON" code="0000"><Device><Tag name="ORGID" value="159047"/><Tag name="TIMESTAMP" value="2022-12-08T12:12:18"/><Tag name="MOBILE" value="919500000892"/><Tag name="TYPE" value="car"/></Device><Ac addrType="ORG"><Detail name="ORGID" value="159047"/></Ac></Payer></ns2:ReqRegED>
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:581000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/ReqRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36SBTEZS8 : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="ReqRegED" reqMsgId="5AKqT1WD8" ts="2024-07-29T16:15:40+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:679000000] Source IP:10.20.41.6,Hit URI:/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36SBTEZS8 Tracking ID:CHCLTRUUPIAP23-19100-6vxxQp3Dt
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:680000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="CSB0000000000005t0xf7oRsPPV36y1kit"
+         orgId="159047"
+         ts="2024-07-29T16:15:40+05:30"
+         ver="2.0"/>
+   <Resp reqMsgId="5AKqT1WD8" result="SUCCESS">
+      <Ref IFSC="CSBK0004378"
+           acNum="123456789"
+           accType="SAVINGS"
+           addr="shivdeep@csb"
+           approvalNum="74653272"
+           code="0000"
+           regName="dsq"
+           respCode="00"
+           seqNum="1"
+           type="PAYER"/>
+   </Resp>
+   <Txn id="XXX0000000000001vRTvznNrSR36SBTEZS8"
+        initiationMode="33"
+        note="j"
+        purpose="83"
+        refUrl="http://upi"
+        ts="2022-12-08T12:12:18"
+        type="DISABLE"/>
+</ns2:RespRegED>
+
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:723000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36SBTEZS8
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:723000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespRegED" reqMsgId="CSB0000000000005t0xf7oRsPPV36y1kit" ts="2024-07-29T16:16:12+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:738000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36SBTEZS8
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:738000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:738000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:RespRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T16:16:12+05:30" orgId="NPCI" msgId="5AKqT1WD9"/><Resp reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" result="SUCCESS"><Ref type="PAYER" seqNum="1" addr="shivdeep@csb" approvalNum="74653272" respCode="00" regName="dsq" acNum="123456789" IFSC="CSBK0004378" code="0000" accType="SAVINGS"/></Resp><Txn id="XXX0000000000001vRTvznNrSR36SBTEZS8" note="j" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="DISABLE" initiationMode="33" purpose="83"/></ns2:RespRegED>
+0 10.200.123.58 20100 [29/Jul/2024:16:16:12:774000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36SBTEZS8 : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="RespRegED" reqMsgId="5AKqT1WD9" ts="2024-07-29T16:15:40+05:30"/>
+
+                                                                 

@@ -1,0 +1,82 @@
+ 10.200.123.58 20100 [29/Jul/2024:14:59:17:401000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:ReqRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+         orgId="159047"
+         ts="2024-07-29T14:59:16+05:30"
+         ver="2.0"/>
+   <Txn id="XXX0000000000001vRTvznNrSR36Kuce892"
+        initiationMode="33"
+        note=""
+        purpose="83"
+        refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+        refUrl="http://upi"
+        startTime="18122022"
+        ts="2022-12-08T12:12:18"
+        type="SETDEVICE"/>
+   <Payer addr="shivdeep@csb"
+          code="0000"
+          name="shiv"
+          seqNum="1"
+          type="PERSON">
+      <Device>
+         <Tag name="GEOCODE" value="288177,1234"/>
+         <Tag name="LOCATION" value="Mumbai,Maharashtra"/>
+         <Tag name="IP" value="124.170.23.22"/>
+         <Tag name="TYPE" value="MOBILE"/>
+         <Tag name="ID" value="987687654321"/>
+         <Tag name="OS" value="android"/>
+         <Tag name="APP" value="com.jshsh.kashs"/>
+         <Tag name="CAPABILITY" value="5200000200010004000639292929292"/>
+         <Tag name="MANUFACTURER" value="apple"/>
+         <Tag name="MODEL" value="s"/>
+         <Tag name="USERCONSENT" value="Y"/>
+      </Device>
+      <Ac addrType="ORG">
+         <Detail name="ORGID" value="159047"/>
+      </Ac>
+      <QR QrPayLoad="00020101021126860011SG.COM.NETS0123101234567899912312359000211111360013000308360013010901099087B7E222C51800007SG.SGQR01121808232F7399020701.0001030616873004020105020006040000070820180823520400005303702540512.345802SG5924INTERNAL TESTING MSS JUN6009Singapore621601121A2B3C4D5E6F6304B78D">
+         <EmbeddedDevice>
+            <Tag name="TYPE" value="CAR"/>
+            <Tag name="MODE" value="A"/>
+            <Tag name="ORGID" value="159047"/>
+            <Tag name="DEVICEID" value="11825"/>
+            <Tag name="APP" value="zebra.com"/>
+            <Tag name="MOBILE" value="916474545454"/>
+            <Tag name="GEOCODE" value="19.0911 ,72.9219"/>
+         </EmbeddedDevice>
+      </QR>
+   </Payer>
+</ns2:ReqRegED>
+
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:416000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36Kuce892
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:416000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="ReqRegED" reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" ts="2024-07-29T14:59:17+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:437000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/ReqRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36Kuce892
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:437000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:437000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:ReqRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T14:59:17+05:30" orgId="NPCI" msgId="5AKoZaMLD"/><Txn id="XXX0000000000001vRTvznNrSR36Kuce892" note="" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="SETDEVICE" initiationMode="33" purpose="83" startTime="18122022"/><Payer addr="shivdeep@csb" name="shiv" seqNum="1" type="PERSON" code="0000"><Device><Tag name="GEOCODE" value="288177,1234"/><Tag name="LOCATION" value="Mumbai,Maharashtra"/><Tag name="IP" value="124.170.23.22"/><Tag name="TYPE" value="MOBILE"/><Tag name="ID" value="987687654321"/><Tag name="OS" value="android"/><Tag name="APP" value="com.jshsh.kashs"/><Tag name="CAPABILITY" value="5200000200010004000639292929292"/><Tag name="MANUFACTURER" value="apple"/><Tag name="MODEL" value="s"/><Tag name="USERCONSENT" value="Y"/></Device><Ac addrType="ORG"><Detail name="ORGID" value="159047"/></Ac><QR QrPayLoad="00020101021126860011SG.COM.NETS0123101234567899912312359000211111360013000308360013010901099087B7E222C51800007SG.SGQR01121808232F7399020701.0001030616873004020105020006040000070820180823520400005303702540512.345802SG5924INTERNAL TESTING MSS JUN6009Singapore621601121A2B3C4D5E6F6304B78D"><EmbeddedDevice><Tag name="TYPE" value="CAR"/><Tag name="MODE" value="A"/><Tag name="ORGID" value="159047"/><Tag name="DEVICEID" value="11825"/><Tag name="APP" value="zebra.com"/><Tag name="MOBILE" value="916474545454"/><Tag name="GEOCODE" value="19.0911 ,72.9219"/></EmbeddedDevice></QR></Payer></ns2:ReqRegED>
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:474000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/ReqRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36Kuce892 : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="ReqRegED" reqMsgId="5AKoZaMLD" ts="2024-07-29T14:58:45+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:530000000] Source IP:10.20.41.6,Hit URI:/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36Kuce892 Tracking ID:CHCLTRUUPIAP23-19100-6vxvWxTMx
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:531000000] Received Message:<?xml version="1.0" encoding="UTF-8"?>
+<ns2:RespRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/">
+   <Head msgId="CSB0000000000005t0xf7oRsPPUUYMTmCG"
+         orgId="159047"
+         ts="2024-07-29T14:58:45+05:30"
+         ver="2.0"/>
+   <Resp reqMsgId="5AKoZaMLD" result="SUCCESS"/>
+   <Txn id="XXX0000000000001vRTvznNrSR36Kuce892"
+        initiationMode="33"
+        note=""
+        purpose="83"
+refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk"
+        refUrl="http://upi"
+        startTime="18122022"
+        ts="2022-12-08T12:12:18"
+        type="SETDEVICE"/>
+</ns2:RespRegED>
+
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:534000000] Acknowledgement sent for Meta API Transaction Id :XXX0000000000001vRTvznNrSR36Kuce892
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:535000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/" api="RespRegED" reqMsgId="CSB0000000000005t0xf7oRsPPUUYMTmCG" ts="2024-07-29T14:59:17+05:30"/>
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:542000000] Message for outbound request (to 159047) :https://10.20.41.6:10131/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36Kuce892
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:542000000] Original outbound Request=
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:542000000] <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:RespRegED xmlns:ns2="http://npci.org/upi/schema/" xmlns:ns3="http://npci.org/cm/schema/"><Head ver="2.0" ts="2024-07-29T14:59:17+05:30" orgId="NPCI" msgId="5AKoZaMLE"/><Resp reqMsgId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" result="SUCCESS"/><Txn id="XXX0000000000001vRTvznNrSR36Kuce892" note="" refId="001z471mSJPg4ykHhLViLcvkTFd1hR31nRk" refUrl="http://upi" ts="2022-12-08T12:12:18" type="SETDEVICE" initiationMode="33" purpose="83" startTime="18122022"/></ns2:RespRegED>
+0 10.200.123.58 20100 [29/Jul/2024:14:59:17:565000000] Acknowledgement Received for :https://10.20.41.6:10131/upi/RespRegED/2.0/urn:txnid:XXX0000000000001vRTvznNrSR36Kuce892 : <?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:Ack xmlns:ns2="http://npci.org/upi/schema/" api="RespRegED" reqMsgId="5AKoZaMLE" ts="2024-07-29T14:58:45+05:30"/>
+
