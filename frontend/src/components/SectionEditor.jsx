@@ -20,86 +20,124 @@ export default function SectionEditor({ section, onRegenerate, onSave, disabled 
   }
 
   return (
-    <div className="border border-gray-200 rounded-xl mb-4 overflow-hidden shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
-        <div>
-          <h3 className="font-semibold text-gray-800 text-sm">{section.title}</h3>
-          <span className="text-xs text-gray-400">v{section.version}</span>
+    <div className="card overflow-hidden">
+      {/* ── Section Header ─────────────────────────────── */}
+      <div className="flex items-center justify-between px-5 py-3.5
+                      bg-slate-50 dark:bg-navy-800/50 border-b border-slate-200 dark:border-navy-600/50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-1 h-5 rounded-full bg-brand-500" />
+          <div>
+            <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{section.title}</h3>
+            <span className="text-xs text-slate-400 dark:text-slate-500">Version {section.version}</span>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-1.5">
           {!editing && (
             <button
               onClick={() => { setEditing(true); setDraft(section.content) }}
               disabled={disabled}
-              className="text-xs px-3 py-1 rounded-lg bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                         bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600
+                         text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-navy-700
+                         disabled:opacity-40 transition-all"
             >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+              </svg>
               Edit
             </button>
           )}
           <button
             onClick={() => setShowRegenPanel(!showRegenPanel)}
             disabled={disabled}
-            className="text-xs px-3 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                       disabled:opacity-40 transition-all
+                       ${showRegenPanel
+                         ? 'bg-brand-600 text-white border border-brand-600'
+                         : 'bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/40'
+                       }`}
           >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
             Regenerate
           </button>
         </div>
       </div>
 
-      {/* Regenerate panel */}
+      {/* ── Regenerate Panel ───────────────────────────── */}
       {showRegenPanel && (
-        <div className="bg-blue-50 px-4 py-3 border-b border-blue-100 flex gap-2 items-center">
-          <input
-            className="flex-1 text-sm border border-blue-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Optional: specific instructions for regeneration..."
-            value={regenInstructions}
-            onChange={(e) => setRegenInstructions(e.target.value)}
-          />
+        <div className="px-5 py-3 border-b border-brand-100 dark:border-brand-900/50
+                        bg-brand-50/50 dark:bg-brand-950/20 flex gap-2 items-center animate-fade-in">
+          <div className="flex-1 flex items-center gap-2 bg-white dark:bg-navy-800
+                          border border-brand-200 dark:border-brand-800 rounded-xl px-3 py-2">
+            <svg className="w-4 h-4 text-brand-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input
+              className="flex-1 text-sm bg-transparent text-slate-800 dark:text-slate-200
+                         placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
+              placeholder="Optional instructions for regeneration..."
+              value={regenInstructions}
+              onChange={(e) => setRegenInstructions(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleRegen() }}
+            />
+          </div>
           <button
             onClick={handleRegen}
             disabled={disabled}
-            className="text-sm px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+            className="btn-primary py-2 text-xs"
           >
-            Go
+            Run
           </button>
           <button
             onClick={() => setShowRegenPanel(false)}
-            className="text-sm px-3 py-2 rounded-lg text-gray-500 hover:text-gray-700"
+            className="btn-ghost py-2 text-xs"
           >
             Cancel
           </button>
         </div>
       )}
 
-      {/* Content */}
-      <div className="px-4 py-4">
+      {/* ── Content ────────────────────────────────────── */}
+      <div className="px-5 py-5">
         {editing ? (
-          <div>
+          <div className="animate-fade-in">
             <textarea
-              className="w-full h-64 text-sm font-mono border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
+              className="input-field h-64 font-mono text-xs resize-y"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
             />
-            <div className="flex gap-2 mt-2 justify-end">
+            <div className="flex gap-2 mt-3 justify-end">
               <button
                 onClick={() => setEditing(false)}
-                className="text-sm px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50"
+                className="btn-secondary text-xs py-2"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="text-sm px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+                className="btn-primary text-xs py-2"
               >
-                Save
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Save Changes
               </button>
             </div>
           </div>
         ) : (
-          <div className="prose prose-sm max-w-none text-gray-700">
+          <div className="prose prose-sm max-w-none
+                          prose-headings:text-slate-900 dark:prose-headings:text-slate-100
+                          prose-p:text-slate-700 dark:prose-p:text-slate-300
+                          prose-strong:text-slate-900 dark:prose-strong:text-slate-100
+                          prose-li:text-slate-700 dark:prose-li:text-slate-300
+                          prose-code:text-brand-600 dark:prose-code:text-brand-400
+                          prose-code:bg-brand-50 dark:prose-code:bg-brand-900/20
+                          prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                          prose-blockquote:border-brand-400 prose-blockquote:text-slate-600 dark:prose-blockquote:text-slate-400">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {section.content || '_Not generated yet._'}
+              {section.content || '_Content not generated yet._'}
             </ReactMarkdown>
           </div>
         )}

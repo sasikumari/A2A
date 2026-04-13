@@ -46,3 +46,16 @@ export const exportCanvas = (session_id, format = 'docx') =>
     params: { format },
     responseType: 'blob',
   })
+
+// History
+export const listHistory = () =>
+  api.get('/history')
+
+export const getHistoryDetail = (session_id) =>
+  api.get(`/history/${session_id}`)
+
+export const renameHistorySession = (session_id, title) =>
+  api.patch(`/history/${session_id}/title`, { title })
+
+export const deleteHistorySession = (session_id) =>
+  api.delete(`/history/${session_id}`)

@@ -49,6 +49,7 @@ async def generate(req: ResearchGenerateRequest):
     session.research.status = state.get("status", "ready")
     session.research.current_version = state.get("current_version", 1)
     session.research.reports = state.get("report_versions", [])
+    store.save(req.session_id)
 
     report = _build_report(state)
     return ResearchStateResponse(
@@ -77,6 +78,7 @@ async def feedback(req: ResearchFeedbackRequest):
     session.research.status = state.get("status", "ready")
     session.research.current_version = state.get("current_version", 1)
     session.research.reports = state.get("report_versions", [])
+    store.save(req.session_id)
 
     report = _build_report(state)
     return ResearchStateResponse(

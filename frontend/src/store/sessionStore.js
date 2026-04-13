@@ -1,15 +1,64 @@
 import { create } from 'zustand'
 
+const getInitialTheme = () => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('cop-theme')
+    if (stored) return stored
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'
+  }
+  return 'light'
+}
+
 const useSessionStore = create((set, get) => ({
-  // Session
+  // ── Auth ──────────────────────────────────────────────────
+  isAuthenticated: false,
+  user: null,
+  login: (userData) => set({ isAuthenticated: true, user: userData }),
+  logout: () => set({
+    isAuthenticated: false,
+    user: null,
+    sessionId: null,
+    currentStep: 'requirement',
+    currentView: 'app',
+    requirementMessages: [],
+    requirementStatus: 'idle',
+    questionsAsked: 0,
+    structuredOutput: null,
+    researchReport: null,
+    researchStatus: 'idle',
+    researchVersions: [],
+    canvas: null,
+    canvasStatus: 'idle',
+    canvasVersions: [],
+    loading: false,
+    error: null,
+  }),
+
+  // ── Theme ─────────────────────────────────────────────────
+  theme: getInitialTheme(),
+  setTheme: (theme) => {
+    localStorage.setItem('cop-theme', theme)
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    set({ theme })
+  },
+
+  // ── View: 'app' | 'history' ───────────────────────────────
+  currentView: 'app',
+  setView: (view) => set({ currentView: view }),
+
+  // ── Session ───────────────────────────────────────────────
   sessionId: null,
   setSessionId: (id) => set({ sessionId: id }),
 
-  // Step tracking: 'requirement' | 'research' | 'canvas'
+  // ── Step tracking: 'requirement' | 'research' | 'canvas' ──
   currentStep: 'requirement',
   setStep: (step) => set({ currentStep: step }),
 
-  // Agent 1
+  // ── Agent 1: Requirement ──────────────────────────────────
   requirementMessages: [],
   requirementStatus: 'idle',   // idle | clarifying | complete
   questionsAsked: 0,
@@ -21,7 +70,7 @@ const useSessionStore = create((set, get) => ({
     structuredOutput: data.structured_output,
   }),
 
-  // Agent 2
+  // ── Agent 2: Research ─────────────────────────────────────
   researchReport: null,
   researchStatus: 'idle',
   researchVersions: [],
@@ -31,7 +80,7 @@ const useSessionStore = create((set, get) => ({
     researchVersions: data.versions || [],
   }),
 
-  // Agent 3
+  // ── Agent 3: Canvas ───────────────────────────────────────
   canvas: null,
   canvasStatus: 'idle',
   canvasVersions: [],
@@ -41,10 +90,9 @@ const useSessionStore = create((set, get) => ({
     canvasVersions: data.versions || [],
   }),
 
-  // Loading states
+  // ── UI State ──────────────────────────────────────────────
   loading: false,
   setLoading: (v) => set({ loading: v }),
-
   error: null,
   setError: (e) => set({ error: e }),
   clearError: () => set({ error: null }),

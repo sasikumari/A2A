@@ -11,7 +11,7 @@ import config
 from rag.ingest import ingest_pipeline
 from rag.retriever import HybridRetriever
 from agents.rag_client import init_rag_client
-from routers import session, requirement, research, canvas, rag
+from routers import session, requirement, research, canvas, rag, history
 
 logging.basicConfig(
     level=logging.INFO,
@@ -66,6 +66,7 @@ app.include_router(requirement.router)
 app.include_router(research.router)
 app.include_router(canvas.router)
 app.include_router(rag.router)
+app.include_router(history.router)
 
 
 @app.get("/health")

@@ -38,6 +38,7 @@ async def start(req: RequirementStartRequest):
     session.requirement.questions_asked = state.get("questions_asked", 0)
     session.requirement.structured_output = state.get("structured_output")
     session.requirement.status = state.get("status", "clarifying")
+    store.save(req.session_id)
 
     return _to_response(req.session_id, state)
 
@@ -54,6 +55,7 @@ async def respond(req: RequirementRespondRequest):
     session.requirement.questions_asked = state.get("questions_asked", 0)
     session.requirement.structured_output = state.get("structured_output")
     session.requirement.status = state.get("status", "clarifying")
+    store.save(req.session_id)
 
     return _to_response(req.session_id, state)
 

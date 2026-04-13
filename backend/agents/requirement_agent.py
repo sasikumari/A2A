@@ -17,12 +17,12 @@ Graph flow:
 """
 import json
 import logging
-from typing import TypedDict, Annotated, Optional
+from typing import TypedDict, Annotated, Literal, Optional
 import operator
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, END, START
 from langgraph.checkpoint.memory import MemorySaver
 
 from agents.rag_client import query_rag
@@ -137,6 +137,19 @@ def _should_continue(state: RequirementState) -> str:
     if not state.get("current_question_key"):
         return "finalize"
     return "ask"
+
+
+def _route_entry(state: RequirementState) -> Literal["interpret_input", "process_answer"]:
+    """
+    First step of each invoke: after checkpoint + input merge, either parse the
+    initial feature request or process the latest user reply. Without this, every
+    follow-up re-runs interpret_input and re-appends the opening user message.
+    """
+    messages = state.get("messages") or []
+    if len(messages) >= 2:
+        if messages[-1]["role"] == "user" and messages[-2]["role"] == "agent":
+            return "process_answer"
+    return "interpret_input"
 
 
 async def generate_question(state: RequirementState) -> dict:
@@ -269,7 +282,11 @@ def build_requirement_graph() -> StateGraph:
     workflow.add_node("process_answer", process_answer)
     workflow.add_node("finalize_output", finalize_output)
 
-    workflow.set_entry_point("interpret_input")
+    workflow.add_conditional_edges(
+        START,
+        _route_entry,
+        {"interpret_input": "interpret_input", "process_answer": "process_answer"},
+    )
     workflow.add_edge("interpret_input", "check_completeness")
 
     workflow.add_conditional_edges(
@@ -331,11 +348,10 @@ async def answer_clarification(session_id: str, answer: str) -> dict:
     if current.get("status") == "complete":
         return current
 
-    # Append user answer to messages and route to process_answer
-    updated_messages = current.get("messages", []) + [{"role": "user", "content": answer}]
-
+    # Only pass the new turn. `messages` uses operator.add — sending the full list
+    # concatenates it onto the checkpoint again and duplicates the whole thread.
     result = await requirement_graph.ainvoke(
-        {**current, "messages": updated_messages},
+        {"messages": [{"role": "user", "content": answer}]},
         config=config_dict,
     )
     return result

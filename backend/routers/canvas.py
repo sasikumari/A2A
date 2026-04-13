@@ -72,6 +72,7 @@ async def generate(req: CanvasGenerateRequest):
     session.canvas.status = state.get("status", "ready")
     session.canvas.current_version = state.get("current_version", 1)
     session.canvas.canvases = state.get("canvas_versions", [])
+    store.save(req.session_id)
 
     return _build_canvas_response(req.session_id, state)
 
@@ -90,6 +91,7 @@ async def regen_section(req: CanvasRegenerateSectionRequest):
     session.canvas.status = state.get("status", "ready")
     session.canvas.current_version = state.get("current_version", 1)
     session.canvas.canvases = state.get("canvas_versions", [])
+    store.save(req.session_id)
 
     return _build_canvas_response(req.session_id, state)
 
@@ -108,6 +110,7 @@ async def update_section(req: CanvasSectionUpdate):
     session.canvas.status = state.get("status", "ready")
     session.canvas.current_version = state.get("current_version", 1)
     session.canvas.canvases = state.get("canvas_versions", [])
+    store.save(req.session_id)
 
     return _build_canvas_response(req.session_id, state)
 

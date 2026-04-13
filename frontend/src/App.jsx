@@ -1,39 +1,47 @@
 import useSessionStore from './store/sessionStore'
+import LoginPage from './pages/LoginPage'
+import Sidebar from './components/Sidebar'
 import StepIndicator from './components/StepIndicator'
 import RequirementChat from './pages/RequirementChat'
 import ResearchReport from './pages/ResearchReport'
 import ProductCanvas from './pages/ProductCanvas'
+import HistoryPortal from './pages/HistoryPortal'
 
 function App() {
-  const currentStep = useSessionStore((s) => s.currentStep)
+  const isAuthenticated = useSessionStore((s) => s.isAuthenticated)
+  const currentStep     = useSessionStore((s) => s.currentStep)
+  const currentView     = useSessionStore((s) => s.currentView)
+
+  if (!isAuthenticated) return <LoginPage />
+
+  const isHistory = currentView === 'history'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">AI</span>
-          </div>
-          <div>
-            <h1 className="font-bold text-gray-900 text-base leading-tight">
-              Change Orchestration Platform
-            </h1>
-            <p className="text-xs text-gray-400">AI-driven Product Canvas Generator</p>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen min-h-dvh flex bg-slate-50 dark:bg-navy-950">
+      {/* Sidebar */}
+      <Sidebar />
 
-      {/* Main */}
-      <main className="max-w-5xl mx-auto px-6 py-8">
-        <StepIndicator current={currentStep} />
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 min-h-[600px] flex flex-col">
-          {currentStep === 'requirement' && <RequirementChat />}
-          {currentStep === 'research' && <ResearchReport />}
-          {currentStep === 'canvas' && <ProductCanvas />}
-        </div>
-      </main>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {isHistory ? (
+          <div className="flex-1 flex flex-col min-h-0 p-8">
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-white dark:bg-navy-900
+                            rounded-2xl shadow-sm border border-gray-200 dark:border-navy-700 p-6">
+              <HistoryPortal />
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col min-h-0 p-8">
+            <StepIndicator current={currentStep} />
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-white dark:bg-navy-900
+                            rounded-2xl shadow-sm border border-gray-200 dark:border-navy-700 p-6">
+              {currentStep === 'requirement' && <RequirementChat />}
+              {currentStep === 'research'    && <ResearchReport />}
+              {currentStep === 'canvas'      && <ProductCanvas />}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
