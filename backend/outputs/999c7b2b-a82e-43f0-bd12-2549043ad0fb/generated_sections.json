@@ -1,0 +1,126 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India",
+      "Circular Reference: NPCI/OPS/OC No. 123/2023-2024",
+      "Date: October 25, 2023"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All Member Banks, Payment Service Providers (PSPs), and Third-Party Application Providers (TPAPs)**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Implementation of Biometric Authentication for UPI Transactions Across Member Banks and PSPs"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the UPI ecosystem efficiently facilitates real-time payments through a well-established network of PSP Banks, Issuer Banks, and Beneficiary Banks. However, there is a growing demand for enhanced security measures, particularly in transactions authenticated via biometric methods. The existing framework lacks a standardized approach to manage biometric-authenticated transactions, leading to inconsistencies and potential security vulnerabilities. In response, the issuer has decided to implement a directive mandating the adoption of a uniform protocol for handling biometric-authenticated transactions, ensuring consistency and security across all member banks and PSPs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enhance the UPI transaction flow by incorporating a new biometric authentication mechanism for REQ_PAY messages.",
+      "The affected technical artifacts include the REQ_PAY and RESP_PAY message types, which will now support biometric authentication as designated by refCategory='05'.",
+      "The Common Library (CL) will be updated to version 2.36 to accommodate the new biometric authentication capabilities, ensuring compatibility with the secure enclave on devices.",
+      "The UPI App's integration with the CL must be updated to handle the new CRED Block format, which will include biometric data for authentication purposes."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must ensure that their UPI Apps are updated to integrate the latest version of the Common Library (CL) provided by NPCI. This update is mandatory to support new authentication mechanisms, including biometric authentication where applicable.",
+      "Issuer/Remitter Banks must implement the necessary backend changes to process REQ_PAY messages with the updated CRED Block format. This includes handling transactions authenticated via biometric data, as indicated by refCategory='05'.",
+      "Beneficiary/Payee Banks must update their systems to accommodate the revised credit confirmation process. They must ensure timely processing and acknowledgment of RESP_PAY messages to maintain transaction integrity.",
+      "Third-Party Application Providers (TPAPs) are advised to work closely with their partner PSP Banks to ensure seamless integration of the updated UPI functionalities. They must also ensure that any user-facing changes are clearly communicated to end-users."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Member Banks must ensure that all relevant departments are informed of the updates and directives specified in this circular.",
+      "PSPs are required to communicate these instructions to their technical and compliance teams to ensure alignment with the updated protocols.",
+      "TPAPs are advised to review the circular and implement necessary changes to maintain compliance with UPI operational standards."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "This section covers Signature Block.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

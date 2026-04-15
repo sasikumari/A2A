@@ -9,6 +9,9 @@ Graph flow:
   [READY — wait for feedback]
        ↓ (on feedback)
   apply_feedback  →  expand_sections (only flagged sections)  →  synthesize_report
+
+NOTE: All nodes are SYNC to avoid Python 3.14 asyncio/LangGraph deadlock.
+      The public API functions are called via asyncio.to_thread() from the router.
 """
 import json
 import logging
@@ -18,12 +21,21 @@ import operator
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from agents.rag_client import query_rag
+from agents.rag_client import query_rag_sync
 import config
+
+# Lazy import for Tavily
+_TavilySearchResults = None
+
+def _get_tavily_cls():
+    global _TavilySearchResults
+    if _TavilySearchResults is None:
+        from langchain_community.tools.tavily_search import TavilySearchResults
+        _TavilySearchResults = TavilySearchResults
+    return _TavilySearchResults
 
 logger = logging.getLogger(__name__)
 
@@ -75,14 +87,14 @@ SECTION_PROMPTS = {
 # --------------------------------------------------------------------------
 
 class ResearchState(TypedDict):
-    requirement_output: dict          # structured JSON from Agent 1
-    sections: Annotated[dict, lambda a, b: {**a, **b}]  # section_key -> expanded content
-    sources: dict                     # section_key -> [source strings]
+    requirement_output: dict
+    sections: Annotated[dict, lambda a, b: {**a, **b}]
+    sources: dict
     feedback: Optional[str]
     sections_to_regenerate: Optional[list[str]]
-    report_versions: list[dict]       # version history
+    report_versions: list[dict]
     current_version: int
-    status: str                       # generating | ready
+    status: str
 
 
 # --------------------------------------------------------------------------
@@ -98,6 +110,7 @@ def _llm():
 
 
 def _tavily():
+    TavilySearchResults = _get_tavily_cls()
     return TavilySearchResults(
         max_results=4,
         api_key=config.TAVILY_API_KEY,
@@ -108,19 +121,31 @@ def _tavily():
 # Helpers
 # --------------------------------------------------------------------------
 
-async def _expand_single_section(
+def _section_to_knowledge_type(section: str) -> Optional[str]:
+    mapping = {
+        "market_view": "rbi_guidelines",
+        "compliance": "rbi_guidelines",
+        "need": "product_canvas",
+        "scalability": "product_documents",
+        "success_kpis": "product_documents",
+        "risks": "upi_codebase",
+    }
+    return mapping.get(section)
+
+
+def _expand_single_section(
     section: str,
     requirement_data: dict,
     existing_content: Optional[str] = None,
     feedback: Optional[str] = None,
 ) -> tuple[str, list[str]]:
-    """Expand one section. Returns (content, sources_list)."""
+    """Expand one section (sync). Returns (content, sources_list)."""
     llm = _llm()
     sources = []
 
-    # 1. RAG retrieval
+    # 1. RAG retrieval (sync)
     req_text = json.dumps(requirement_data.get(section, {}), indent=2)
-    rag_result = await query_rag(
+    rag_result = query_rag_sync(
         f"{section} UPI payments embedded payments",
         top_k=config.FINAL_TOP_K,
         knowledge_type=_section_to_knowledge_type(section),
@@ -129,15 +154,18 @@ async def _expand_single_section(
     for r in rag_result["results"]:
         sources.append(r["metadata"].get("source_file", "RAG"))
 
-    # 2. Tavily web search
+    # 2. Tavily web search (sync via run)
     web_context = ""
     try:
         tavily = _tavily()
         query = f"UPI {section.replace('_', ' ')} payments India RBI 2024 2025"
-        web_results = await tavily.ainvoke({"query": query})
-        web_snippets = [r.get("content", "") for r in (web_results or [])[:3]]
-        web_context = "\n\n".join(web_snippets)
-        sources.extend([r.get("url", "web") for r in (web_results or [])[:3]])
+        web_results = tavily.run(query)
+        if isinstance(web_results, list):
+            web_snippets = [r.get("content", "") for r in web_results[:3]]
+            web_context = "\n\n".join(web_snippets)
+            sources.extend([r.get("url", "web") for r in web_results[:3]])
+        elif isinstance(web_results, str):
+            web_context = web_results[:2000]
     except Exception as e:
         logger.warning(f"Tavily search failed for section {section}: {e}")
 
@@ -158,27 +186,15 @@ Be specific with numbers, benchmarks, and regulatory references where available.
 Cite sources inline as [Source: filename] when using knowledge base data.""")
 
     human = HumanMessage(content="\n".join(prompt_parts))
-    response = await llm.ainvoke([system, human])
+    response = llm.invoke([system, human])
     return response.content.strip(), list(set(sources))
 
 
-def _section_to_knowledge_type(section: str) -> Optional[str]:
-    mapping = {
-        "market_view": "rbi_guidelines",
-        "compliance": "rbi_guidelines",
-        "need": "product_canvas",
-        "scalability": "product_documents",
-        "success_kpis": "product_documents",
-        "risks": "upi_codebase",
-    }
-    return mapping.get(section)
-
-
 # --------------------------------------------------------------------------
-# Nodes
+# Nodes (all sync)
 # --------------------------------------------------------------------------
 
-async def expand_sections(state: ResearchState) -> dict:
+def expand_sections(state: ResearchState) -> dict:
     """Expand all sections (or only the flagged ones for regeneration)."""
     to_process = state.get("sections_to_regenerate") or SECTIONS
     existing_sections = state.get("sections", {})
@@ -191,7 +207,7 @@ async def expand_sections(state: ResearchState) -> dict:
     for section in to_process:
         if section not in SECTIONS:
             continue
-        content, srcs = await _expand_single_section(
+        content, srcs = _expand_single_section(
             section=section,
             requirement_data=state["requirement_output"],
             existing_content=existing_sections.get(section),
@@ -204,12 +220,11 @@ async def expand_sections(state: ResearchState) -> dict:
     return {"sections": new_sections, "sources": new_sources}
 
 
-async def synthesize_report(state: ResearchState) -> dict:
+def synthesize_report(state: ResearchState) -> dict:
     """Combine all sections into a versioned report."""
     llm = _llm()
     sections = state["sections"]
 
-    # Build executive summary
     section_summaries = "\n\n".join(
         f"**{s.upper().replace('_', ' ')}**:\n{sections.get(s, '')[:500]}"
         for s in SECTIONS if s in sections
@@ -218,10 +233,9 @@ async def synthesize_report(state: ResearchState) -> dict:
     sys_msg = SystemMessage(content="""Write a concise executive summary (3-5 sentences)
 synthesizing the key findings across all research sections. Be crisp and insightful.""")
     h_msg = HumanMessage(content=section_summaries)
-    summary_resp = await llm.ainvoke([sys_msg, h_msg])
+    summary_resp = llm.invoke([sys_msg, h_msg])
     summary = summary_resp.content.strip()
 
-    # Build versioned report
     new_version = state.get("current_version", 0) + 1
     report = {
         "version": new_version,
@@ -250,15 +264,11 @@ synthesizing the key findings across all research sections. Be crisp and insight
 
 
 def apply_feedback(state: ResearchState) -> dict:
-    """
-    Determine which sections to regenerate based on feedback.
-    If specific sections mentioned, target them. Otherwise regenerate all.
-    """
+    """Determine which sections to regenerate based on feedback."""
     feedback = state.get("feedback", "")
     sections_to_regen = state.get("sections_to_regenerate")
 
     if not sections_to_regen:
-        # Try to detect section mentions in feedback
         mentioned = [s for s in SECTIONS if s.replace("_", " ").lower() in feedback.lower()]
         sections_to_regen = mentioned if mentioned else SECTIONS
 
@@ -287,16 +297,24 @@ def build_research_graph() -> StateGraph:
     return workflow
 
 
-_checkpointer = MemorySaver()
-research_graph = build_research_graph().compile(checkpointer=_checkpointer)
+_checkpointer = None
+_research_graph = None
+
+def _get_graph():
+    global _checkpointer, _research_graph
+    if _research_graph is None:
+        _checkpointer = MemorySaver()
+        _research_graph = build_research_graph().compile(checkpointer=_checkpointer)
+    return _research_graph
 
 
 # --------------------------------------------------------------------------
-# Public API
+# Public API — sync, called via asyncio.to_thread() from the router
 # --------------------------------------------------------------------------
 
-async def generate_research(session_id: str, requirement_output: dict) -> dict:
+def generate_research(session_id: str, requirement_output: dict) -> dict:
     """Trigger initial research generation from requirement structured output."""
+    graph = _get_graph()
     config_dict = {"configurable": {"thread_id": f"research_{session_id}"}}
     initial_state = {
         "requirement_output": requirement_output,
@@ -308,26 +326,24 @@ async def generate_research(session_id: str, requirement_output: dict) -> dict:
         "current_version": 0,
         "status": "generating",
     }
-    result = await research_graph.ainvoke(initial_state, config=config_dict)
-    return result
+    return graph.invoke(initial_state, config=config_dict)
 
 
-async def regenerate_with_feedback(
+def regenerate_with_feedback(
     session_id: str,
     feedback: str,
     sections_to_regenerate: Optional[list[str]] = None,
 ) -> dict:
     """Resume with feedback and trigger regeneration."""
+    graph = _get_graph()
     config_dict = {"configurable": {"thread_id": f"research_{session_id}"}}
-    snapshot = research_graph.get_state(config_dict)
+    snapshot = graph.get_state(config_dict)
     current = snapshot.values
 
-    # Inject feedback then route through apply_feedback node
     updated = {
         **current,
         "feedback": feedback,
         "sections_to_regenerate": sections_to_regenerate,
         "status": "regenerating",
     }
-    result = await research_graph.ainvoke(updated, config=config_dict)
-    return result
+    return graph.invoke(updated, config=config_dict)

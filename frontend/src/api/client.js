@@ -59,3 +59,33 @@ export const renameHistorySession = (session_id, title) =>
 
 export const deleteHistorySession = (session_id) =>
   api.delete(`/history/${session_id}`)
+
+// ── Document Generation (DocGen service on port 8001) ─────────────────────
+const docgenApi = axios.create({
+  baseURL: import.meta.env.VITE_DOCGEN_URL || 'http://localhost:8001',
+  headers: { 'Content-Type': 'application/json' },
+})
+
+// Start a bundle job (BRD + TSD + Product Note + Circular in parallel)
+export const generateDocBundle = (payload) =>
+  docgenApi.post('/api/generate/bundle', payload)
+
+// Poll bundle status
+export const getBundleStatus = (bundle_id) =>
+  docgenApi.get(`/api/bundles/${bundle_id}`)
+
+// Download individual document
+export const downloadDoc = (job_id) =>
+  docgenApi.get(`/api/download/${job_id}`, { responseType: 'blob' })
+
+// Download entire bundle as ZIP
+export const downloadBundle = (bundle_id) =>
+  docgenApi.get(`/api/bundles/${bundle_id}/download`, { responseType: 'blob' })
+
+// Get job content as markdown (for inline preview)
+export const getJobContent = (job_id) =>
+  docgenApi.get(`/api/jobs/${job_id}/content`)
+
+// DocGen health check
+export const docgenHealth = () =>
+  docgenApi.get('/api/health')

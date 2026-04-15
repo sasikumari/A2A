@@ -12,6 +12,7 @@ from rag.ingest import ingest_pipeline
 from rag.retriever import HybridRetriever
 from agents.rag_client import init_rag_client
 from routers import session, requirement, research, canvas, rag, history
+from routers import docgen as docgen_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,24 +24,32 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ------------------------------------------------------------------ #
-    # Startup: build / load RAG indexes and initialize the RAG client
+    # Startup: fire RAG ingestion in a daemon thread and immediately yield
+    # so the server starts accepting requests without waiting for RAG.
     # ------------------------------------------------------------------ #
-    logger.info("Starting RAG ingestion pipeline...")
-    try:
-        vector_store, bm25, bm25_chunks = ingest_pipeline(
-            documents_dir=config.DOCUMENTS_DIR,
-            force=False,
-        )
-        retriever = HybridRetriever(vector_store, bm25, bm25_chunks)
-        init_rag_client(retriever)
-        logger.info("RAG client ready.")
-    except Exception as e:
-        logger.error(f"RAG initialization failed: {e}. Continuing without local RAG.")
+    import threading
+
+    def _init_rag():
+        try:
+            logger.info("RAG ingestion thread started...")
+            vector_store, bm25, bm25_chunks = ingest_pipeline(
+                documents_dir=config.DOCUMENTS_DIR,
+                force=False,
+            )
+            retriever = HybridRetriever(vector_store, bm25, bm25_chunks)
+            init_rag_client(retriever)
+            logger.info("RAG client ready.")
+        except Exception as e:
+            logger.error(f"RAG initialization failed in thread: {e}")
+
+    t = threading.Thread(target=_init_rag, daemon=True, name="rag-init")
+    t.start()
+    logger.info("RAG ingestion started in background thread — server ready immediately.")
 
     yield
 
     # ------------------------------------------------------------------ #
-    # Shutdown (add cleanup if needed)
+    # Shutdown
     # ------------------------------------------------------------------ #
     logger.info("Shutting down.")
 
@@ -67,6 +76,7 @@ app.include_router(research.router)
 app.include_router(canvas.router)
 app.include_router(rag.router)
 app.include_router(history.router)
+app.include_router(docgen_router.router)
 
 
 @app.get("/health")

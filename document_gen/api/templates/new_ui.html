@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPI Phase 1 — Live Payment Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background: #f8fafc; color: #0f172a; }
+
+    /* ── Phone mockup ── */
+    .phone-frame {
+      width: 340px;
+      min-height: 680px;
+      background: #1a1a2e;
+      border-radius: 44px;
+      padding: 12px;
+      box-shadow: 0 40px 80px rgba(0,0,0,.35), 0 0 0 2px #374151, inset 0 0 0 2px rgba(255,255,255,.06);
+      position: relative;
+    }
+    .phone-notch {
+      width: 120px; height: 28px;
+      background: #1a1a2e;
+      border-radius: 0 0 20px 20px;
+      margin: 0 auto;
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      z-index: 10;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .phone-camera { width: 10px; height: 10px; background: #374151; border-radius: 50%; }
+    .phone-speaker { width: 40px; height: 5px; background: #374151; border-radius: 3px; }
+    .phone-screen {
+      background: #fff;
+      border-radius: 36px;
+      overflow: hidden;
+      height: 656px;
+      display: flex; flex-direction: column;
+      position: relative;
+    }
+    .phone-status-bar {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      padding: 10px 20px 6px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Screen slides */
+    .phone-tab-content { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+    .phone-tab-content.active { display: flex; }
+
+    /* Bottom nav */
+    .phone-nav {
+      background: #fff;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      padding: 8px 0 12px;
+      flex-shrink: 0;
+    }
+    .phone-nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer; padding: 4px 2px;
+      color: #94a3b8; font-size: 10px; font-weight: 500;
+      transition: color .15s;
+    }
+    .phone-nav-item.active { color: #7c3aed; }
+    .phone-nav-item svg { width: 20px; height: 20px; }
+
+    /* Form inputs */
+    .p-input {
+      width: 100%; background: #f8fafc; border: 1.5px solid #e2e8f0;
+      border-radius: 12px; padding: 10px 14px; font-size: 13px; font-family: 'Outfit', sans-serif;
+      color: #1e293b; outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .p-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+    .p-label { font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+    .p-btn {
+      width: 100%; padding: 13px; border-radius: 14px; font-size: 14px; font-weight: 700;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff; border: none; cursor: pointer; transition: opacity .2s, transform .1s;
+      font-family: 'Outfit', sans-serif;
+    }
+    .p-btn:hover { opacity: .92; }
+    .p-btn:active { transform: scale(.98); }
+    .p-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; transform: none; }
+    .p-btn-outline {
+      background: #fff; border: 1.5px solid #7c3aed; color: #7c3aed; font-size: 12px;
+      padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 600;
+      transition: background .15s; font-family: 'Outfit', sans-serif;
+    }
+    .p-btn-outline:hover { background: #f5f3ff; }
+
+    /* Output terminal */
+    .p-output {
+      background: #1e293b; color: #94a3b8; border-radius: 12px;
+      padding: 10px 12px; font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      min-height: 48px; max-height: 100px; overflow-y: auto; white-space: pre-wrap;
+      word-break: break-all; line-height: 1.5;
+    }
+    .p-output.success { color: #4ade80; }
+    .p-output.error { color: #f87171; }
+
+    /* Status badges */
+    .badge-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .badge-pending { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+    .badge-fail    { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* XML stream */
+    .xml-entry { animation: slideIn .3s ease-out; }
+    @keyframes slideIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+    @keyframes fadeDot { 0%,80%,100%{opacity:.2;transform:scale(.8)} 40%{opacity:1;transform:scale(1)} }
+    .dot { width:5px;height:5px;border-radius:50%;background:#7c3aed;animation:fadeDot 1.2s infinite; }
+    .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
+
+    /* Flow SVG */
+    .flow-node rect { fill:#fff; stroke:#e2e8f0; stroke-width:1.5; rx:8; transition:fill .3s,stroke .3s; }
+    .flow-node text { font-family:'Outfit',sans-serif; font-size:11px; fill:#475569; text-anchor:middle; dominant-baseline:middle; }
+    .flow-node.active rect { fill:#f5f3ff; stroke:#7c3aed; stroke-width:2; }
+    .flow-node.active text { fill:#6d28d9; font-weight:600; }
+    .flow-edge path { fill:none; stroke:#cbd5e1; stroke-width:1.5; transition:stroke .3s; }
+    .flow-edge text { font-family:'Outfit',sans-serif; font-size:9.5px; fill:#94a3b8; text-anchor:middle; }
+    .flow-edge.active path { stroke:#7c3aed; stroke-width:2.5; stroke-dasharray:8 4; animation:dash 1s linear infinite; }
+    .flow-edge.active text { fill:#6d28d9; font-weight:600; }
+    @keyframes dash { to{ stroke-dashoffset:-12; } }
+
+    /* Transaction rows */
+    .txn-card { background:#fff; border:1px solid #f1f5f9; border-radius:12px; padding:10px 14px; margin-bottom:8px; }
+
+    /* PIN modal */
+    .pin-modal-backdrop { position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:1000;display:none;align-items:center;justify-content:center; }
+    .pin-modal-backdrop.show { display:flex; }
+    .pin-modal { background:#fff;border-radius:24px;padding:28px;width:300px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.3); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:#f1f5f9}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ── Header ── -->
+  <header class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40">
+    <div class="max-w-screen-xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-sm">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-sm font-bold text-gray-900 leading-tight">UPI Simulator</div>
+          <div class="text-xs text-gray-400 leading-tight">Phase 1 · Live Transaction Console</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <!-- Nav links -->
+        <nav class="hidden md:flex items-center gap-1">
+          <a href="/ui" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-50 text-purple-700">Phase 1</a>
+          <a href="/phase2" class="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">Phase 2</a>
+          <a href="/agents/dashboard" class="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">Agents</a>
+        </nav>
+
+        <!-- Connection status -->
+        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
+          <span id="statusDot" class="w-2 h-2 rounded-full bg-gray-300"></span>
+          <span id="connectionText" class="text-xs font-medium text-gray-500">Connecting…</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main layout ── -->
+  <div class="max-w-screen-xl mx-auto px-6 py-8">
+    <div class="flex gap-8 items-start">
+
+      <!-- ══════════════════════════════
+           LEFT — Phone Mockup
+      ══════════════════════════════ -->
+      <div class="flex-shrink-0 flex flex-col items-center gap-4">
+        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">UPI App Simulator</div>
+
+        <div class="phone-frame">
+          <!-- Notch -->
+          <div class="phone-notch">
+            <div class="phone-camera"></div>
+            <div class="phone-speaker"></div>
+            <div class="phone-camera"></div>
+          </div>
+
+          <!-- Screen -->
+          <div class="phone-screen">
+
+            <!-- Status bar -->
+            <div class="phone-status-bar flex-shrink-0">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3 h-3 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                </svg>
+                <span class="text-white text-[10px] font-bold tracking-wide">NPCI UPI Pay</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-white/70 text-[10px]" id="phoneTime">9:41</span>
+                <div class="flex gap-0.5">
+                  <div class="w-1 h-2 bg-white/80 rounded-sm"></div>
+                  <div class="w-1 h-3 bg-white/80 rounded-sm"></div>
+                  <div class="w-1 h-4 bg-white rounded-sm"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- App header -->
+            <div class="bg-gradient-to-b from-purple-600 to-indigo-600 px-4 pt-2 pb-6 flex-shrink-0">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <div class="text-white/70 text-[10px]">Welcome back,</div>
+                  <div class="text-white font-bold text-sm">Ramesh Kumar</div>
+                </div>
+                <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                </div>
+              </div>
+              <!-- Balance card -->
+              <div class="bg-white/15 backdrop-blur rounded-2xl p-3">
+                <div class="text-white/60 text-[10px] mb-0.5">Available Balance</div>
+                <div class="text-white font-bold text-2xl">₹5,00,000</div>
+                <div class="text-white/50 text-[9px] mt-0.5">ramesh@payer · PAYERBANK</div>
+              </div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="bg-white px-4 pt-0 -mt-3 flex-shrink-0">
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex justify-around">
+                <button onclick="switchTab('pay')" class="flex flex-col items-center gap-1 quick-action-btn" data-tab="pay">
+                  <div class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                  </div>
+                  <span class="text-[10px] font-semibold text-gray-600">Send</span>
+                </button>
+                <button onclick="switchTab('collect')" class="flex flex-col items-center gap-1 quick-action-btn" data-tab="collect">
+                  <div class="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </div>
+                  <span class="text-[10px] font-semibold text-gray-600">Collect</span>
+                </button>
+                <button onclick="switchTab('validate')" class="flex flex-col items-center gap-1 quick-action-btn" data-tab="validate">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </div>
+                  <span class="text-[10px] font-semibold text-gray-600">Verify</span>
+                </button>
+                <button onclick="switchTab('status')" class="flex flex-col items-center gap-1 quick-action-btn" data-tab="status">
+                  <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                  </div>
+                  <span class="text-[10px] font-semibold text-gray-600">Status</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- ─── TAB SCREENS ─── -->
+
+            <!-- PAY Screen -->
+            <div id="phone-pay" class="phone-tab-content active flex-col p-4 gap-3 overflow-y-auto">
+              <div class="font-bold text-sm text-gray-900">Send Money</div>
+
+              <form id="payForm" class="flex flex-col gap-3">
+                <div>
+                  <div class="p-label">From (Payer VPA)</div>
+                  <input class="p-input" type="text" name="payer" value="ramesh@payer" required>
+                </div>
+                <div>
+                  <div class="p-label">To (Payee VPA)</div>
+                  <div class="flex gap-2">
+                    <input class="p-input flex-1" type="text" name="payee" id="payeeInput" value="merchant@benef" required>
+                    <button type="button" id="validatePayeeBtn" class="p-btn-outline whitespace-nowrap">Verify</button>
+                  </div>
+                  <div id="payeeInfoRow" style="display:none" class="mt-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+                    <span id="payeeInfo" class="text-[11px] text-emerald-700 font-medium"></span>
+                  </div>
+                </div>
+                <div>
+                  <div class="p-label">Amount (₹)</div>
+                  <input class="p-input" type="number" name="amount" value="100.00" step="0.01" min="1" required>
+                </div>
+                <div>
+                  <div class="p-label">Note</div>
+                  <input class="p-input" type="text" name="note" value="Demo Payment">
+                </div>
+
+                <!-- Status display (after payment) -->
+                <div id="payStatusRow" style="display:none" class="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+                  <div id="payStatusIcon" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200 text-gray-600"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span id="payStatusBadge" class="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600"></span>
+                    </div>
+                    <div id="payStatusSub" class="text-[10px] text-gray-500 mt-0.5"></div>
+                    <div id="payStatusHint" class="text-[10px] text-gray-400"></div>
+                    <div id="payStatusProgress" style="display:none" class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-purple-500 rounded-full animate-pulse" style="width:60%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="p-btn" id="payButton" disabled>
+                  Send ₹ →
+                </button>
+              </form>
+
+              <div>
+                <div class="p-label mb-1">Response</div>
+                <div id="payOutput" class="p-output">Awaiting transaction…</div>
+              </div>
+            </div>
+
+            <!-- COLLECT Screen -->
+            <div id="phone-collect" class="phone-tab-content flex-col p-4 gap-3">
+              <div class="font-bold text-sm text-gray-900">Request Money</div>
+              <form id="collectForm" class="flex flex-col gap-3">
+                <div>
+                  <div class="p-label">From (Payer VPA)</div>
+                  <input class="p-input" type="text" name="payer" value="ramesh@payer" required>
+                </div>
+                <div>
+                  <div class="p-label">Payee VPA (Requestor)</div>
+                  <input class="p-input" type="text" name="payee" value="merchant@benef" required>
+                </div>
+                <div>
+                  <div class="p-label">Amount (₹)</div>
+                  <input class="p-input" type="number" name="amount" value="50.00" step="0.01" min="1" required>
+                </div>
+                <div>
+                  <div class="p-label">Note</div>
+                  <input class="p-input" type="text" name="note" value="Bill Split">
+                </div>
+                <button type="submit" class="p-btn">Request Collect →</button>
+              </form>
+              <div>
+                <div class="p-label mb-1">Response</div>
+                <div id="collectOutput" class="p-output">Awaiting collect request…</div>
+              </div>
+            </div>
+
+            <!-- VALIDATE Screen -->
+            <div id="phone-validate" class="phone-tab-content flex-col p-4 gap-3">
+              <div class="font-bold text-sm text-gray-900">Verify VPA Address</div>
+              <form id="validateForm" class="flex flex-col gap-3">
+                <div>
+                  <div class="p-label">Your VPA</div>
+                  <input class="p-input" type="text" name="payer" value="ramesh@payer" required>
+                </div>
+                <div>
+                  <div class="p-label">Payee VPA to Verify</div>
+                  <input class="p-input" type="text" name="payee" value="merchant@benef" required>
+                </div>
+                <button type="submit" class="p-btn">Verify Address →</button>
+              </form>
+              <div>
+                <div class="p-label mb-1">Result</div>
+                <div id="validateOutput" class="p-output">Enter a VPA to verify…</div>
+              </div>
+            </div>
+
+            <!-- STATUS Screen -->
+            <div id="phone-status" class="phone-tab-content flex-col p-4 gap-3">
+              <div class="font-bold text-sm text-gray-900">Check Transaction Status</div>
+              <form id="statusForm" class="flex flex-col gap-3">
+                <div>
+                  <div class="p-label">Transaction RRN</div>
+                  <input class="p-input" type="text" name="rrn" placeholder="Enter RRN number" required>
+                </div>
+                <button type="submit" class="p-btn">Check Status →</button>
+              </form>
+              <div>
+                <div class="p-label mb-1">Result</div>
+                <div id="statusOutput" class="p-output">Enter RRN to check status…</div>
+              </div>
+            </div>
+
+            <!-- HISTORY Screen -->
+            <div id="phone-history" class="phone-tab-content flex-col p-4 gap-3">
+              <div class="flex items-center justify-between">
+                <div class="font-bold text-sm text-gray-900">Transaction History</div>
+                <button id="refreshTxnsBtn" class="p-btn-outline text-[11px] px-3 py-1.5">Refresh</button>
+              </div>
+              <div id="txnsContainer" class="flex flex-col gap-2">
+                <div class="text-xs text-gray-400 text-center py-8">No transactions yet. Try sending money first!</div>
+              </div>
+            </div>
+
+            <!-- Bottom nav -->
+            <div class="phone-nav mt-auto flex-shrink-0">
+              <button class="phone-nav-item active" id="nav-pay" onclick="switchTab('pay')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                <span>Send</span>
+              </button>
+              <button class="phone-nav-item" id="nav-collect" onclick="switchTab('collect')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                <span>Collect</span>
+              </button>
+              <button class="phone-nav-item" id="nav-validate" onclick="switchTab('validate')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Verify</span>
+              </button>
+              <button class="phone-nav-item" id="nav-status" onclick="switchTab('status')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span>Status</span>
+              </button>
+              <button class="phone-nav-item" id="nav-history" onclick="switchTab('history')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>History</span>
+              </button>
+            </div>
+
+          </div><!-- /phone-screen -->
+        </div><!-- /phone-frame -->
+
+        <!-- Phone label -->
+        <div class="flex items-center gap-2 text-xs text-gray-400">
+          <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+          <span>Live · ramesh@payer ↔ merchant@benef</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           RIGHT — Dashboard panels
+      ══════════════════════════════ -->
+      <div class="flex-1 flex flex-col gap-6 min-w-0">
+
+        <!-- Network Flow Card -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-5 h-5 rounded-lg bg-purple-100 flex items-center justify-center">
+                <svg class="w-3 h-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <span class="text-sm font-semibold text-gray-800">Live Transaction Flow</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              <span class="text-xs text-gray-400 ml-1">Animating</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <svg id="flowSvg" viewBox="0 0 760 320" class="w-full" style="max-height:280px">
+              <!-- Banks (top) -->
+              <g id="node-rembank" class="flow-node" transform="translate(280,20)">
+                <rect x="0" y="0" width="200" height="54" rx="10"/>
+                <text x="100" y="27">🏦 Remitter Bank</text>
+              </g>
+              <g id="node-benebank" class="flow-node" transform="translate(280,246)">
+                <rect x="0" y="0" width="200" height="54" rx="10"/>
+                <text x="100" y="27">🏦 Beneficiary Bank</text>
+              </g>
+
+              <!-- Payer PSP (left) -->
+              <g id="node-payerpsp" class="flow-node" transform="translate(20,133)">
+                <rect x="0" y="0" width="180" height="54" rx="10"/>
+                <text x="90" y="27">📱 Payer PSP</text>
+              </g>
+
+              <!-- UPI Switch (center) -->
+              <g id="node-switch" class="flow-node" transform="translate(290,133)">
+                <rect x="0" y="0" width="180" height="54" rx="10"/>
+                <text x="90" y="27">⚡ UPI Switch</text>
+              </g>
+
+              <!-- Payee PSP (right) -->
+              <g id="node-payeepSP" class="flow-node" transform="translate(560,133)">
+                <rect x="0" y="0" width="180" height="54" rx="10"/>
+                <text x="90" y="27">🏪 Payee PSP</text>
+              </g>
+
+              <!-- Edges -->
+              <!-- ReqPay: Payer PSP → Switch -->
+              <g id="edge-pay-req" class="flow-edge">
+                <path d="M200,153 L290,153"/>
+                <text x="245" y="145">ReqPay</text>
+              </g>
+              <!-- AuthReq: Switch → Payee PSP -->
+              <g id="edge-auth-req" class="flow-edge">
+                <path d="M470,153 L560,153"/>
+                <text x="515" y="145">AuthReq</text>
+              </g>
+              <!-- AuthResp: Payee PSP → Switch -->
+              <g id="edge-auth-resp" class="flow-edge">
+                <path d="M560,167 L470,167"/>
+                <text x="515" y="183">AuthResp</text>
+              </g>
+              <!-- Debit: Switch → Remitter Bank -->
+              <g id="edge-debit" class="flow-edge">
+                <path d="M380,133 L380,74"/>
+                <text x="345" y="107">Debit</text>
+              </g>
+              <!-- DebitResp: Remitter Bank → Switch -->
+              <g id="edge-debit-resp" class="flow-edge">
+                <path d="M395,74 L395,133"/>
+                <text x="400" y="107">RespDebit</text>
+              </g>
+              <!-- Credit: Switch → Beneficiary Bank -->
+              <g id="edge-credit" class="flow-edge">
+                <path d="M380,187 L380,246"/>
+                <text x="345" y="220">Credit</text>
+              </g>
+              <!-- CreditResp -->
+              <g id="edge-credit-resp" class="flow-edge">
+                <path d="M395,246 L395,187"/>
+                <text x="400" y="220">RespCredit</text>
+              </g>
+              <!-- RespPay: Switch → Payer PSP -->
+              <g id="edge-final-resp" class="flow-edge">
+                <path d="M290,167 L200,167"/>
+                <text x="245" y="183">RespPay</text>
+              </g>
+              <!-- TxnConf: Switch → Payee PSP (lower) -->
+              <g id="edge-txnconf" class="flow-edge">
+                <path d="M470,170 L560,170"/>
+                <text x="515" y="186">TxnConf</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Performance card (condensed) -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-5 h-5 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <svg class="w-3 h-3 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+              </div>
+              <span class="text-sm font-semibold text-gray-800">Performance Benchmark</span>
+            </div>
+            <button id="perfRunBtn" class="text-xs font-semibold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors">Run Benchmark</button>
+          </div>
+          <div class="p-5">
+            <div class="grid grid-cols-3 gap-4 mb-4">
+              <div>
+                <div class="text-xs text-gray-400 mb-1">RPS</div>
+                <input id="perfRps" type="number" value="50" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-indigo-400">
+              </div>
+              <div>
+                <div class="text-xs text-gray-400 mb-1">Duration (s)</div>
+                <input id="perfDuration" type="number" value="10" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-indigo-400">
+              </div>
+              <div>
+                <div class="text-xs text-gray-400 mb-1">Concurrency</div>
+                <input id="perfConcurrency" type="number" value="50" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-indigo-400">
+              </div>
+            </div>
+            <div id="perfOutput" class="bg-gray-900 rounded-xl px-4 py-3 font-mono text-xs text-gray-400 min-h-[60px] max-h-[120px] overflow-y-auto">
+              <span class="text-gray-600">Ready to run benchmark…</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- XML Stream Card -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex-1">
+          <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-5 h-5 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <span class="text-sm font-semibold text-gray-800">Real-time XML Stream</span>
+            </div>
+            <button id="clearXmlBtn" class="text-xs font-medium text-gray-400 hover:text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors">Clear</button>
+          </div>
+          <div id="xmlStream" class="p-4 bg-gray-950 min-h-[160px] max-h-[300px] overflow-y-auto font-mono">
+            <div class="text-gray-600 text-xs italic">Waiting for XML traffic…</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PIN Modal ── -->
+  <div class="pin-modal-backdrop" id="pinModal" aria-hidden="true" aria-modal="true" role="dialog">
+    <div class="pin-modal">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <h3 class="text-base font-bold text-gray-900 mb-1">Enter UPI PIN</h3>
+      <p class="text-xs text-gray-500 mb-4">Authenticate your payment securely</p>
+      <input id="pinInput" type="password" maxlength="6" placeholder="● ● ● ●"
+        class="w-full text-center text-2xl tracking-[0.5em] border-2 border-gray-200 rounded-xl p-3 mb-4 focus:outline-none focus:border-purple-400 font-mono"
+        autocomplete="off">
+      <div class="flex gap-3">
+        <button id="pinCancelBtn" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
+        <button id="pinConfirmBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-sm font-semibold text-white hover:opacity-90">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Scripts ── -->
+  <script>
+    // ── Clock ──
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('phoneTime').textContent =
+        now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    // ── Tab switching ──
+    const TABS = ['pay','collect','validate','status','history'];
+    function switchTab(tab) {
+      TABS.forEach(t => {
+        document.getElementById('phone-' + t).classList.toggle('active', t === tab);
+        document.getElementById('nav-' + t)?.classList.toggle('active', t === tab);
+      });
+    }
+
+    // ── SSE ──
+    const xmlStream = document.getElementById('xmlStream');
+    const connText = document.getElementById('connectionText');
+    const statusDot = document.getElementById('statusDot');
+
+    function appendXml(source, content) {
+      const isEmpty = xmlStream.querySelector('.italic');
+      if (isEmpty) xmlStream.innerHTML = '';
+      const entry = document.createElement('div');
+      entry.className = 'xml-entry mb-3';
+      const isResp = source.toLowerCase().includes('response') || source.toLowerCase().includes('resp');
+      const colorClass = isResp ? 'text-emerald-400' : 'text-purple-400';
+      entry.innerHTML = `
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-[10px] font-bold ${colorClass} uppercase tracking-wider">${source}</span>
+          <span class="text-gray-600 text-[9px]">${new Date().toLocaleTimeString()}</span>
+        </div>
+        <pre class="text-[10px] text-gray-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">${escHtml(content.slice(0,600))}${content.length>600?'\n<span class="text-gray-600">…truncated</span>':''}</pre>
+      `;
+      xmlStream.appendChild(entry);
+      xmlStream.scrollTop = xmlStream.scrollHeight;
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    const evtSource = new EventSource('/stream');
+    evtSource.onopen = () => {
+      connText.textContent = 'Live';
+      statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+    };
+    evtSource.onerror = () => {
+      connText.textContent = 'Disconnected';
+      statusDot.className = 'w-2 h-2 rounded-full bg-red-400';
+    };
+    evtSource.addEventListener('xml_log', e => {
+      try {
+        const { source, content } = JSON.parse(e.data);
+        if (content) appendXml(source || 'System', content);
+      } catch {}
+    });
+
+    document.getElementById('clearXmlBtn').onclick = () => {
+      xmlStream.innerHTML = '<div class="text-gray-600 text-xs italic">Cleared.</div>';
+    };
+
+    // ── Output helpers ──
+    function $(sel) { return document.querySelector(sel); }
+    function setOutput(id, data) {
+      const el = $(id);
+      if (!el) return;
+      const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      el.textContent = text;
+      el.className = 'p-output';
+      if (text.toLowerCase().includes('success')) el.classList.add('success');
+      else if (text.toLowerCase().includes('error') || text.toLowerCase().includes('fail')) el.classList.add('error');
+    }
+
+    // ── Form helpers & VPA validation ──
+    function buildReqPayXML({ payer, payee, amount, note, pin, purpose, type='PAY' }) {
+      const ts = new Date().toISOString().replace(/\.\d{3}Z$/,'Z');
+      const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+      const pinBlock = pin ? `<upi:Creds><upi:Cred><upi:Data code="${esc(pin)}"/></upi:Cred></upi:Creds>` : '';
+      const purposeXML = purpose ? `<upi:purpose>${esc(purpose)}</upi:purpose><upi:purposeCode code="${esc(purpose)}" description="UPI Purpose ${esc(purpose)}"/>` : '';
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<upi:ReqPay xmlns:upi="http://npci.org/upi/schema/">\n  <upi:Head ver="1.0" ts="${ts}" orgId="PAYERPSP" msgId="REQUI" prodType="UPI"/>\n  <upi:Txn id="REQ-${Date.now()}" type="${esc(type)}" note="${esc(note||'')}"/>\n  ${purposeXML}\n  <upi:Payer addr="${esc(payer)}">\n    <upi:Amount value="${Number(amount).toFixed(2)}"/>\n    ${pinBlock}\n  </upi:Payer>\n  <upi:Payees>\n    <upi:Payee addr="${esc(payee)}"/>\n  </upi:Payees>\n</upi:ReqPay>`;
+    }
+    function buildCollectXML({ payer, payee, amount, note }) {
+      const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<CollectRequest>\n  <PayeeVPA>${esc(payee)}</PayeeVPA>\n  <PayerVPA>${esc(payer)}</PayerVPA>\n  <Amount>${Number(amount).toFixed(2)}</Amount>\n  <Note>${esc(note||'')}</Note>\n</CollectRequest>`;
+    }
+    function buildValAddXML({ payer, payee }) {
+      const ts = new Date().toISOString().replace(/\.\d{3}Z$/,'Z');
+      const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<upi:ReqValAdd xmlns:upi="http://npci.org/upi/schema/">\n  <upi:Head ver="1.0" ts="${ts}" orgId="PAYERPSP" msgId="VALUI" prodType="UPI"/>\n  <upi:Txn id="VAL-${Date.now()}" type="ValAdd"/>\n  <upi:Payer addr="${esc(payer)}"/>\n  <upi:Payee addr="${esc(payee)}"/>\n</upi:ReqValAdd>`;
+    }
+    function buildStatusXML(rrn) {
+      return `<?xml version="1.0" encoding="UTF-8"?><StatusRequest><RRN>${rrn}</RRN></StatusRequest>`;
+    }
+
+    async function postXML(path, xml, expectXML=false) {
+      const res = await fetch(path, { method:'POST', headers:{'Content-Type':'application/xml'}, body: xml });
+      const text = await res.text();
+      if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
+      if (expectXML) return text;
+      try { return JSON.parse(text); } catch { return text; }
+    }
+
+    function parseRespValAdd(xmlText) {
+      try {
+        const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+        const resp = doc.getElementsByTagNameNS('http://npci.org/upi/schema/','Resp')[0] || doc.getElementsByTagName('Resp')[0];
+        if (!resp) return { ok:false, message:'Invalid RespValAdd' };
+        return { ok: resp.getAttribute('result')==='SUCCESS', ifsc: resp.getAttribute('IFSC')||'', accType: resp.getAttribute('accType')||'', maskName: resp.getAttribute('maskName')||'', message: resp.getAttribute('result')||'' };
+      } catch { return {ok:false, message:'Parse error'}; }
+    }
+
+    // VPA validation
+    let lastValidatedPayee='', lastValAddOk=false;
+    async function validatePayeeOnUI(payer, payee) {
+      const infoRow=$('#payeeInfoRow'), infoEl=$('#payeeInfo');
+      if (infoRow) infoRow.style.display='block';
+      if (infoEl) infoEl.textContent='Validating…';
+      $('#payButton').disabled=true; lastValAddOk=false; lastValidatedPayee='';
+      try {
+        const xml=buildValAddXML({payer,payee});
+        const respXML=await postXML('/validate-address',xml,true);
+        const parsed=parseRespValAdd(respXML);
+        if (parsed.ok) {
+          lastValAddOk=true; lastValidatedPayee=payee;
+          const parts=[];
+          if(parsed.maskName) parts.push(`${parsed.maskName}`);
+          if(parsed.ifsc) parts.push(parsed.ifsc);
+          if(parsed.accType) parts.push(parsed.accType);
+          infoEl.innerHTML=`<span class="text-emerald-600">✓ Verified</span> — ${parts.join(' · ')}`;
+          $('#payButton').disabled=false;
+        } else {
+          infoEl.innerHTML=`<span class="text-red-500">✗ ${parsed.message}</span>`;
+          $('#payButton').disabled=true;
+        }
+      } catch(err) {
+        if(infoEl) infoEl.innerHTML=`<span class="text-red-500">Error: ${err}</span>`;
+        $('#payButton').disabled=true;
+      }
+    }
+
+    // PIN modal
+    const pinModal=document.getElementById('pinModal');
+    const pinInput=document.getElementById('pinInput');
+    const pinCancelBtn=document.getElementById('pinCancelBtn');
+    const pinConfirmBtn=document.getElementById('pinConfirmBtn');
+    let pendingPayData=null;
+    function openPinModal(){ pinModal.classList.add('show'); pinModal.setAttribute('aria-hidden','false'); if(pinInput){pinInput.value=''; setTimeout(()=>pinInput.focus(),50);} }
+    function closePinModal(){ pinModal.classList.remove('show'); pinModal.setAttribute('aria-hidden','true'); }
+    pinCancelBtn.addEventListener('click',()=>{ pendingPayData=null; closePinModal(); });
+
+    // Pay status
+    let payStatusTimer=null;
+    function setPayStatusUI(text,state,hint) {
+      const row=$('#payStatusRow'), badge=$('#payStatusBadge'), hintEl=$('#payStatusHint');
+      const icon=$('#payStatusIcon'), sub=$('#payStatusSub'), progress=$('#payStatusProgress');
+      if(!row||!badge) return;
+      row.style.display='flex'; badge.textContent=text||'';
+      const up=String(state||'').toUpperCase();
+      badge.className='text-xs font-bold px-2 py-0.5 rounded-full ' + (up==='SUCCESS'?'badge-success':up==='PENDING'?'badge-pending':'badge-fail');
+      if(hintEl) hintEl.textContent=hint||'';
+      if(icon){ icon.className='w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold '+(up==='SUCCESS'?'bg-emerald-100 text-emerald-600':up==='PENDING'?'bg-amber-100 text-amber-600':'bg-red-100 text-red-600'); icon.textContent=up==='SUCCESS'?'✓':up==='PENDING'?'⏳':'✗'; }
+      if(sub){ sub.textContent=up==='SUCCESS'?'Payment completed! ✓':up==='PENDING'?'Awaiting confirmation…':'Payment failed.'; }
+      if(progress) progress.style.display=up==='PENDING'?'block':'none';
+    }
+    async function pollStatusOnce(rrn){ const xml=buildStatusXML(rrn); const resp=await postXML('/status',xml,true); let status='PENDING'; try{ const doc=new DOMParser().parseFromString(resp,'application/xml'); const s=doc.getElementsByTagName('Status')[0]; if(s&&s.textContent) status=s.textContent.trim(); }catch{} return status; }
+    function startPayStatusPolling(rrn){ if(payStatusTimer) clearInterval(payStatusTimer); setPayStatusUI('PENDING','PENDING',`RRN: ${rrn}`); payStatusTimer=setInterval(async()=>{ try{ const status=await pollStatusOnce(rrn); if(status&&status!=='PENDING'){ clearInterval(payStatusTimer); payStatusTimer=null; setPayStatusUI(status.toUpperCase(),status.toUpperCase()==='SUCCESS'?'SUCCESS':'FAIL',`RRN: ${rrn}`); } else setPayStatusUI('PENDING','PENDING',`RRN: ${rrn}`); }catch{} },1000); }
+
+    async function submitPayWithPin(pin) {
+      if(!pendingPayData) return;
+      const xml=buildReqPayXML({payer:pendingPayData.payer,payee:pendingPayData.payee,amount:pendingPayData.amount,note:pendingPayData.note,pin,type:'PAY'});
+      setOutput('#payOutput','Submitting…');
+      try{ const ack=await postXML('/reqpay',xml,false); setOutput('#payOutput','ACK:\n'+JSON.stringify(ack,null,2)); if(ack&&ack.rrn) startPayStatusPolling(ack.rrn); }
+      catch(err){ setOutput('#payOutput','Error:\n'+String(err)); }
+      finally{ pendingPayData=null; }
+    }
+
+    pinConfirmBtn.addEventListener('click', async()=>{ const pin=(pinInput&&pinInput.value)?pinInput.value:''; if(!pin){pinInput&&pinInput.focus();return;} pinConfirmBtn.disabled=true; try{ await submitPayWithPin(pin); }finally{ pinConfirmBtn.disabled=false; closePinModal(); } });
+    if(pinInput){ pinInput.addEventListener('keydown',async ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); const pin=pinInput.value||''; if(!pin) return; pinConfirmBtn&&(pinConfirmBtn.disabled=true); try{ await submitPayWithPin(pin); }finally{ pinConfirmBtn&&(pinConfirmBtn.disabled=false); closePinModal(); } } if(ev.key==='Escape') closePinModal(); }); }
+
+    // Pay form submit
+    $('#payForm').addEventListener('submit',async e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(e.target)); if(!lastValAddOk||lastValidatedPayee!==data.payee){ await validatePayeeOnUI(data.payer,data.payee); if(!lastValAddOk){ setOutput('#payOutput','Payee validation failed. Cannot proceed.'); return; } } pendingPayData=data; try{ playFlowOnce(); }catch{} openPinModal(); });
+
+    // Validate payee button
+    document.getElementById('validatePayeeBtn').addEventListener('click',async()=>{ const payer=$('#payForm [name="payer"]').value; const payee=$('#payeeInput').value; if(payer&&payee) await validatePayeeOnUI(payer,payee); });
+    document.getElementById('payeeInput').addEventListener('input',()=>{ lastValAddOk=false; lastValidatedPayee=''; $('#payButton').disabled=true; const infoRow=$('#payeeInfoRow'); if(infoRow){infoRow.style.display='block'; const infoEl=$('#payeeInfo'); if(infoEl) infoEl.innerHTML='Click <b>Verify</b> to validate payee.'; } });
+
+    // Collect form
+    $('#collectForm').addEventListener('submit',async e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(e.target)); const xml=buildCollectXML(data); setOutput('#collectOutput','Submitting…'); try{ const ack=await postXML('/collect',xml,false); setOutput('#collectOutput','ACK:\n'+JSON.stringify(ack,null,2)); }catch(err){ setOutput('#collectOutput','Error:\n'+String(err)); } });
+
+    // Validate form
+    $('#validateForm').addEventListener('submit',async e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(e.target)); const xml=buildValAddXML(data); setOutput('#validateOutput','Submitting…'); try{ const resp=await postXML('/validate-address',xml,true); setOutput('#validateOutput',resp); }catch(err){ setOutput('#validateOutput','Error:\n'+String(err)); } });
+
+    // Status form
+    $('#statusForm').addEventListener('submit',async e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(e.target)); const xml=buildStatusXML(data.rrn); setOutput('#statusOutput','Checking…'); try{ const resp=await postXML('/status',xml,true); setOutput('#statusOutput',resp); }catch(err){ setOutput('#statusOutput','Error:\n'+String(err)); } });
+
+    // Transactions
+    async function fetchTransactions(){ const res=await fetch('/transactions'); const data=await res.json(); return Array.isArray(data)?data:[]; }
+    function renderTransactions(list){
+      const c=document.getElementById('txnsContainer'); if(!c) return; c.innerHTML='';
+      if(!list.length){ c.innerHTML='<div class="text-xs text-gray-400 text-center py-8">No transactions yet.</div>'; return; }
+      list.forEach(tx=>{ const ok=(tx.status||'').toUpperCase()==='SUCCESS'; const badgeCls=ok?'badge-success':'badge-fail'; const row=document.createElement('div'); row.className='txn-card';
+        row.innerHTML=`<div class="flex items-center justify-between"><div><div class="text-xs font-semibold text-gray-800">${tx.payer_vpa||''} → ${tx.payee_vpa||''}</div><div class="text-[10px] text-gray-400 mt-0.5">RRN: ${tx.rrn||''} · ${tx.created_at||''}</div></div><div class="flex items-center gap-2"><span class="font-bold text-sm text-gray-900">₹${Number(tx.amount||0).toFixed(2)}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeCls}">${tx.status||''}</span></div></div>`;
+        c.appendChild(row);
+      });
+    }
+    document.getElementById('refreshTxnsBtn').addEventListener('click',async()=>{ try{ renderTransactions(await fetchTransactions()); }catch(e){ document.getElementById('txnsContainer').textContent='Error loading transactions.'; } });
+
+    // Performance benchmark
+    document.getElementById('perfRunBtn').addEventListener('click', async()=>{
+      const rps=document.getElementById('perfRps').value||50;
+      const dur=document.getElementById('perfDuration').value||10;
+      const con=document.getElementById('perfConcurrency').value||50;
+      const out=document.getElementById('perfOutput');
+      out.innerHTML='<span class="text-purple-400">Starting benchmark…</span>\n';
+      try {
+        const res=await fetch('/benchmark',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rps:parseInt(rps),duration:parseInt(dur),concurrency:parseInt(con)})});
+        const reader=res.body.getReader(); const decoder=new TextDecoder();
+        while(true){ const {done,value}=await reader.read(); if(done) break; out.textContent+=decoder.decode(value); out.scrollTop=out.scrollHeight; }
+      } catch(e){ out.textContent+='Error: '+e; }
+    });
+
+    // ── Flow Diagram Animation ──
+    function setActive(id,on){ const el=document.getElementById(id); if(!el) return; el.classList.toggle('active',on); }
+    function resetFlow(){ ['node-payerpsp','node-switch','node-payeepSP','node-rembank','node-benebank','edge-pay-req','edge-auth-req','edge-auth-resp','edge-debit','edge-debit-resp','edge-credit','edge-credit-resp','edge-final-resp','edge-txnconf'].forEach(id=>setActive(id,false)); }
+    async function playFlowOnce(){
+      resetFlow();
+      setActive('node-payerpsp',true); await delay(400);
+      setActive('edge-pay-req',true); await delay(600);
+      setActive('node-switch',true); await delay(350);
+      setActive('edge-auth-req',true); await delay(550);
+      setActive('node-payeepSP',true); await delay(350);
+      setActive('edge-auth-resp',true); await delay(450);
+      setActive('edge-debit',true); await delay(600);
+      setActive('node-rembank',true); await delay(400);
+      setActive('edge-debit-resp',true); await delay(450);
+      setActive('edge-credit',true); await delay(600);
+      setActive('node-benebank',true); await delay(400);
+      setActive('edge-credit-resp',true); await delay(450);
+      setActive('edge-final-resp',true); await delay(350);
+      setActive('edge-txnconf',true);
+    }
+    function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+    async function startFlowAuto(){ await delay(400); while(true){ try{ await playFlowOnce(); }catch{} await delay(900); } }
+    startFlowAuto();
+
+    // Auto-validate default payee on load
+    document.addEventListener('DOMContentLoaded',()=>{ const pi=document.getElementById('payeeInput'); const pa=$('#payForm [name="payer"]'); if(pi&&pa) validatePayeeOnUI(pa.value||'ramesh@payer',pi.value||'merchant@benef').catch(()=>{}); });
+    // Also try immediately
+    setTimeout(()=>{ const pi=document.getElementById('payeeInput'); if(pi) validatePayeeOnUI('ramesh@payer',pi.value||'merchant@benef').catch(()=>{}); },500);
+  </script>
+</body>
+</html>

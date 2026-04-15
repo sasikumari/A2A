@@ -2,6 +2,7 @@ const STEPS = [
   { key: 'requirement', label: 'Requirements', num: 1 },
   { key: 'research', label: 'Research', num: 2 },
   { key: 'canvas', label: 'Product Canvas', num: 3 },
+  { key: 'documents', label: 'Document Suite', num: 4 },
 ]
 
 export default function StepIndicator({ current }) {

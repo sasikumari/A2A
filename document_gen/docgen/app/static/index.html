@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocGen AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273548;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --blue: #3b82f6;
+      --blue-dark: #1d4ed8;
+      --blue-light: #60a5fa;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f97316;
+      --yellow: #eab308;
+      --purple: #a855f7;
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app { max-width: 1200px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      padding: 32px 0 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    header h1 {
+      font-size: 2.4rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--blue-light), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    header p { color: var(--text-muted); margin-top: 6px; font-size: 0.95rem; }
+
+    .grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .card + .card { margin-top: 24px; }
+    .card h2 {
+      font-size: 1.05rem; font-weight: 700; color: var(--text);
+      margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+    }
+    .card h2 .icon { font-size: 1.2rem; }
+
+    label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    input[type="text"], input[type="number"], textarea, select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); padding: 9px 12px;
+      font-size: 0.9rem; outline: none; transition: border-color 0.2s; margin-bottom: 14px;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--blue); }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+
+    .checkbox-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 14px; cursor: pointer;
+    }
+    .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer; }
+    .checkbox-row span { font-size: 0.88rem; color: var(--text-muted); }
+
+    /* ---- Mode Toggle ---- */
+    .mode-toggle {
+      display: flex; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 4px; gap: 4px; margin-bottom: 22px;
+    }
+    .mode-btn {
+      flex: 1; padding: 9px 12px; border-radius: 6px; border: none;
+      font-size: 0.88rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; color: var(--text-muted); background: transparent;
+    }
+    .mode-btn.active {
+      background: var(--blue-dark); color: #fff;
+      box-shadow: 0 2px 8px rgba(29,78,216,0.4);
+    }
+    .mode-btn:hover:not(.active) { background: var(--surface2); color: var(--text); }
+
+    /* ---- Drop zone ---- */
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: 8px; padding: 28px 16px;
+      text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 14px; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--blue); background: rgba(59,130,246,0.06); }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .drop-zone .dz-icon { font-size: 2rem; margin-bottom: 8px; }
+    .drop-zone p { font-size: 0.85rem; color: var(--text-muted); }
+    .drop-zone p strong { color: var(--blue-light); }
+
+    .file-list { list-style: none; margin-bottom: 14px; }
+    .file-list li {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: var(--text-muted);
+      background: var(--surface2); border-radius: 6px;
+      padding: 6px 10px; margin-bottom: 4px;
+    }
+    .file-list .badge { margin-left: auto; font-size: 0.7rem; border-radius: 20px; padding: 2px 8px; font-weight: 700; }
+    .badge-ok { background: rgba(34,197,94,0.2); color: var(--green); }
+    .badge-err { background: rgba(239,68,68,0.2); color: var(--red); }
+    .badge-pending { background: rgba(59,130,246,0.2); color: var(--blue-light); }
+
+    /* ---- Buttons ---- */
+    .btn {
+      width: 100%; padding: 11px 20px; border-radius: 8px; border: none;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s; letter-spacing: 0.3px;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); color: #fff; }
+    .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+    .btn-bundle { background: linear-gradient(135deg, var(--purple), #7c3aed); color: #fff; }
+    .btn-bundle:hover:not(:disabled) { opacity: 0.9; }
+    .btn-success { background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-sm { width: auto; padding: 6px 14px; font-size: 0.8rem; }
+
+    /* ---- Pipeline viz ---- */
+    .pipeline-section { margin-top: 28px; }
+    .pipeline-section h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .pipeline-nodes { display: flex; align-items: center; gap: 0; overflow-x: auto; padding-bottom: 6px; }
+    .pipeline-node {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+      background: var(--surface2); font-size: 0.75rem; font-weight: 600;
+      color: var(--text-muted); white-space: nowrap; transition: all 0.3s;
+      min-width: 90px; text-align: center;
+    }
+    .pipeline-node .node-icon { font-size: 1.1rem; }
+    .pipeline-connector { flex: 1; height: 2px; background: var(--border); min-width: 12px; max-width: 30px; transition: background 0.3s; }
+    .pipeline-node.active { border-color: var(--blue); background: rgba(59,130,246,0.12); color: var(--blue-light); box-shadow: 0 0 12px rgba(59,130,246,0.3); }
+    .pipeline-node.done { border-color: var(--green); background: rgba(34,197,94,0.1); color: var(--green); }
+    .pipeline-node.error { border-color: var(--red); background: rgba(239,68,68,0.1); color: var(--red); }
+    .pipeline-connector.done { background: var(--green); }
+    .pipeline-connector.active { background: var(--blue); }
+
+    /* ---- Progress bar ---- */
+    .progress-wrap { margin-top: 18px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
+    .progress-bar-bg { background: var(--surface2); border-radius: 99px; height: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--blue-light)); transition: width 0.6s ease; width: 0%; }
+    .progress-bar-fill.complete { background: linear-gradient(90deg, var(--green), #4ade80); }
+    .progress-bar-fill.error { background: var(--red); }
+
+    /* ---- Result / Error cards ---- */
+    .result-card { margin-top: 20px; padding: 18px; border-radius: 8px; display: none; }
+    .result-card.show { display: block; }
+    .result-card.success { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3); }
+    .result-card.error-card { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); }
+    .result-card h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    .result-card.success h4 { color: var(--green); }
+    .result-card.error-card h4 { color: var(--red); }
+    .result-card p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+
+    /* ---- Bundle cards ---- */
+    .bundle-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;
+    }
+    @media (max-width: 600px) { .bundle-grid { grid-template-columns: 1fr; } }
+
+    .bundle-doc-card {
+      background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 14px 16px;
+      transition: border-color 0.3s;
+    }
+    .bundle-doc-card.running { border-color: var(--blue); }
+    .bundle-doc-card.completed { border-color: var(--green); }
+    .bundle-doc-card.failed { border-color: var(--red); }
+
+    .bundle-doc-card .doc-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .bundle-doc-card .doc-type {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+    }
+    .bundle-doc-card .doc-status-badge {
+      font-size: 0.72rem; font-weight: 700; border-radius: 20px;
+      padding: 2px 9px;
+    }
+    .status-pending  { background: rgba(148,163,184,0.15); color: var(--text-muted); }
+    .status-running  { background: rgba(59,130,246,0.2);  color: var(--blue-light); }
+    .status-completed{ background: rgba(34,197,94,0.2);   color: var(--green); }
+    .status-failed   { background: rgba(239,68,68,0.2);   color: var(--red); }
+
+    .bundle-doc-card .doc-step {
+      font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .bundle-doc-card .mini-bar-bg {
+      background: var(--bg); border-radius: 99px; height: 6px; overflow: hidden;
+    }
+    .bundle-doc-card .mini-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--blue), var(--blue-light));
+      transition: width 0.6s ease; width: 0%;
+    }
+    .bundle-doc-card .mini-bar-fill.complete { background: linear-gradient(90deg, var(--green), #4ade80); }
+    .bundle-doc-card .mini-bar-fill.error { background: var(--red); }
+    .bundle-doc-card .download-link {
+      display: inline-block; margin-top: 8px;
+      font-size: 0.78rem; color: var(--green); font-weight: 600; text-decoration: none;
+      cursor: pointer;
+    }
+    .bundle-doc-card .download-link:hover { text-decoration: underline; }
+
+    .bundle-zip-btn { margin-top: 16px; }
+
+    /* ---- Collections table ---- */
+    .collections-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 8px; }
+    .collections-table th { text-align: left; padding: 7px 10px; background: var(--surface2); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
+    .collections-table td { padding: 7px 10px; border-top: 1px solid var(--border); }
+    .collections-table tr:hover td { background: var(--surface2); }
+
+    /* ---- Search results ---- */
+    .search-results { margin-top: 12px; }
+    .search-result-item { background: var(--surface2); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; border-left: 3px solid var(--blue); }
+
+    /* ---- Health pill ---- */
+    .health-bar { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; margin-top: 10px; }
+    .health-pill { background: var(--surface2); border-radius: 20px; padding: 4px 12px; color: var(--text-muted); }
+    .health-pill span { color: var(--blue-light); font-weight: 700; }
+
+    /* ---- Spinner ---- */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+    /* ---- Scrollbar ---- */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    select option { background: var(--surface); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>DocGen AI</h1>
+    <p>AI-powered document generator — runs locally with Ollama &amp; LangGraph</p>
+  </header>
+
+  <!-- Health bar -->
+  <div id="healthBar" class="health-bar" style="margin-bottom:20px;">
+    <div class="health-pill">Status: <span id="healthStatus">checking...</span></div>
+    <div class="health-pill">Model: <span id="healthModel">—</span></div>
+    <div class="health-pill">Active Jobs: <span id="healthActive">—</span></div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT COLUMN — Knowledge Base -->
+    <div>
+      <div class="card">
+        <h2><span class="icon">📁</span> Knowledge Base Upload</h2>
+
+        <label>Collection Name</label>
+        <input type="text" id="collectionName" value="default" placeholder="default" />
+
+        <label class="checkbox-row" style="margin-bottom:10px;">
+          <input type="checkbox" id="isReference" />
+          <span>Use as reference template (extract heading structure)</span>
+        </label>
+
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc,.txt,.md,.csv" />
+          <div class="dz-icon">⬆️</div>
+          <p><strong>Click or drag files here</strong></p>
+          <p style="margin-top:4px;">PDF, DOCX, TXT, MD, CSV</p>
+        </div>
+
+        <ul class="file-list" id="fileList"></ul>
+        <button class="btn btn-primary" id="uploadBtn" onclick="uploadFiles()">Upload &amp; Ingest</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon">🗄️</span> Collections</h2>
+        <button class="btn btn-primary btn-sm" style="margin-bottom:12px;" onclick="loadCollections()">Refresh</button>
+        <table class="collections-table">
+          <thead><tr><th>Name</th><th>Chunks</th><th>Action</th></tr></thead>
+          <tbody id="collectionsBody"><tr><td colspan="3" style="color:var(--text-muted);padding:10px;">Click Refresh to load.</td></tr></tbody>
+        </table>
+
+        <div style="margin-top:18px;">
+          <h2 style="margin-bottom:10px;"><span class="icon">🔍</span> Search RAG</h2>
+          <input type="text" id="searchQuery" placeholder="Search your knowledge base..." />
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input type="text" id="searchCollection" placeholder="Collection name" value="default" style="flex:1;margin-bottom:0;" />
+            <input type="number" id="searchTopK" value="3" min="1" max="20" style="width:70px;margin-bottom:0;" />
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="searchRAG()" style="margin-bottom:12px;">Search</button>
+          <div class="search-results" id="searchResults"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN — Generate -->
+    <div>
+      <div class="card">
+
+        <!-- Mode toggle -->
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="modeSingle" onclick="setMode('single')">✨ Single Document</button>
+          <button class="mode-btn" id="modeBundle" onclick="setMode('bundle')">🗂️ All Four Documents</button>
+        </div>
+
+        <!-- Shared fields (always visible) -->
+        <label>Prompt <span style="color:var(--red);">*</span></label>
+        <textarea id="genPrompt" placeholder="Describe the documents you want to generate. E.g., 'We are introducing biometric authentication for UPI payments. PSP Banks must upgrade CL to version 2.36+...'"></textarea>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div>
+            <label>Version Number</label>
+            <input type="text" id="versionNumber" placeholder="1.0" />
+          </div>
+          <div>
+            <label>Classification</label>
+            <input type="text" id="classification" placeholder="Confidential" />
+          </div>
+          <div>
+            <label>RAG Collection</label>
+            <select id="genCollection">
+              <option value="">None</option>
+              <option value="default">default</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="useRag" checked />
+          <span>Use knowledge base context when relevant</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="includeDiagrams" checked />
+          <span>Include UML diagrams</span>
+        </label>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Organization Name</label>
+            <input type="text" id="organizationName" placeholder="NPCI" />
+          </div>
+          <div>
+            <label>Reference Code</label>
+            <input type="text" id="referenceCode" placeholder="NPCI/UPI/OC No. 001/2026-2027" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Issue Date</label>
+            <input type="text" id="issueDate" placeholder="07 April 2026" />
+          </div>
+          <div>
+            <label>Recipient Line</label>
+            <input type="text" id="recipientLine" placeholder="All PSP Banks, Issuer Banks and TPAPs" />
+          </div>
+        </div>
+
+        <label>Subject Line (Circular override)</label>
+        <input type="text" id="subjectLine" placeholder="Subject: Introduction of ..." />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div>
+            <label>Signatory Name</label>
+            <input type="text" id="signatoryName" placeholder="Authorized Signatory" />
+          </div>
+          <div>
+            <label>Signatory Title</label>
+            <input type="text" id="signatoryTitle" placeholder="Senior Vice President" />
+          </div>
+          <div>
+            <label>Signatory Dept</label>
+            <input type="text" id="signatoryDepartment" placeholder="UPI Product & Operations" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Audience</label>
+            <input type="text" id="audience" placeholder="PSP Banks, Issuer Banks, TPAPs" />
+          </div>
+          <div>
+            <label>Desired Outcome</label>
+            <input type="text" id="desiredOutcome" placeholder="What should readers do after reading?" />
+          </div>
+        </div>
+
+        <label>Additional Context</label>
+        <textarea id="additionalContext" placeholder="Any extra context, constraints, or requirements..." style="min-height:60px;"></textarea>
+
+        <!-- SINGLE MODE extras -->
+        <div id="singleModeExtras">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label>Document Type</label>
+              <select id="docType">
+                <option value="BRD">BRD — Business Requirements</option>
+                <option value="TSD">TSD — Technical Solution Design</option>
+                <option value="Product Note">Product Note</option>
+                <option value="Circular">Circular</option>
+                <option value="PRD">PRD — Product Requirements</option>
+                <option value="Technical Spec">Technical Specification</option>
+                <option value="Report">Report</option>
+                <option value="Proposal">Proposal</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            <div>
+              <label>Document Title (optional)</label>
+              <input type="text" id="documentTitle" placeholder="Override generated title" />
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="generateBtn" onclick="generateSingle()">
+            ✨ Generate Document
+          </button>
+
+          <!-- Pipeline viz -->
+          <div class="pipeline-section" id="pipelineSection" style="display:none;">
+            <h3>Pipeline Progress</h3>
+            <div class="pipeline-nodes">
+              <div class="pipeline-node" id="node-retrieving"><span class="node-icon">🔍</span>RAG Retrieve</div>
+              <div class="pipeline-connector" id="conn-1"></div>
+              <div class="pipeline-node" id="node-planning"><span class="node-icon">📋</span>Plan</div>
+              <div class="pipeline-connector" id="conn-2"></div>
+              <div class="pipeline-node" id="node-generating_diagrams"><span class="node-icon">📊</span>Diagrams</div>
+              <div class="pipeline-connector" id="conn-3"></div>
+              <div class="pipeline-node" id="node-writing"><span class="node-icon">✍️</span>Write</div>
+              <div class="pipeline-connector" id="conn-4"></div>
+              <div class="pipeline-node" id="node-reviewing"><span class="node-icon">🔎</span>Review</div>
+              <div class="pipeline-connector" id="conn-5"></div>
+              <div class="pipeline-node" id="node-assembling"><span class="node-icon">📄</span>Assemble</div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-label">
+                <span id="progressStep">Starting...</span>
+                <span id="progressPct">0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-card success" id="resultCard">
+            <h4>✅ Document Ready!</h4>
+            <p id="resultMsg">Your document has been generated successfully.</p>
+            <button class="btn btn-success" id="downloadBtn" onclick="downloadSingle()">⬇️ Download Document</button>
+          </div>
+          <div class="result-card error-card" id="errorCard">
+            <h4>❌ Generation Failed</h4>
+            <p id="errorMsg">An error occurred during generation.</p>
+          </div>
+        </div>
+
+        <!-- BUNDLE MODE -->
+        <div id="bundleModeExtras" style="display:none;">
+
+          <!-- Optional per-type title overrides -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;">
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Title Overrides (optional)</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div><label>BRD Title</label><input type="text" id="brdTitle" placeholder="Business Requirements Document" /></div>
+              <div><label>TSD Title</label><input type="text" id="tsdTitle" placeholder="Technical Specification Document" /></div>
+              <div><label>Product Note Title</label><input type="text" id="productNoteTitle" placeholder="Product Note" /></div>
+              <div><label>Circular Title</label><input type="text" id="circularTitle" placeholder="Circular" /></div>
+            </div>
+          </div>
+
+          <button class="btn btn-bundle" id="bundleBtn" onclick="generateBundle()">
+            🗂️ Generate All Four Documents
+          </button>
+
+          <!-- Bundle progress grid -->
+          <div id="bundleSection" style="display:none;">
+            <p style="font-size:0.82rem;color:var(--text-muted);margin-top:18px;margin-bottom:4px;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">
+              All Four Documents — Running in Parallel
+            </p>
+            <div class="bundle-grid" id="bundleGrid"></div>
+
+            <div class="bundle-zip-btn" id="bundleZipArea" style="display:none;">
+              <button class="btn btn-success" onclick="downloadBundle()">⬇️ Download All as ZIP</button>
+            </div>
+          </div>
+
+          <div class="result-card error-card" id="bundleErrorCard">
+            <h4>❌ Bundle Failed to Start</h4>
+            <p id="bundleErrorMsg">An error occurred.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end grid -->
+</div><!-- end app -->
+
+<script>
+  const API = '';
+  let mode = 'single';
+
+  // Single-doc state
+  let singlePollInterval = null;
+  let currentJobId = null;
+
+  // Bundle state
+  let bundlePollInterval = null;
+  let currentBundleId = null;
+
+  let selectedFiles = [];
+
+  const STATUS_NODE_MAP = {
+    retrieving: 'retrieving', planning: 'planning',
+    generating_diagrams: 'generating_diagrams', writing: 'writing',
+    reviewing: 'reviewing', assembling: 'assembling',
+  };
+  const NODE_ORDER = ['retrieving', 'planning', 'generating_diagrams', 'writing', 'reviewing', 'assembling'];
+
+  // ---- Mode switch ----
+  function setMode(m) {
+    mode = m;
+    document.getElementById('modeSingle').classList.toggle('active', m === 'single');
+    document.getElementById('modeBundle').classList.toggle('active', m === 'bundle');
+    document.getElementById('singleModeExtras').style.display = m === 'single' ? 'block' : 'none';
+    document.getElementById('bundleModeExtras').style.display = m === 'bundle' ? 'block' : 'none';
+  }
+
+  // ---- Shared field collector ----
+  function sharedFields() {
+    return {
+      prompt:              document.getElementById('genPrompt').value.trim(),
+      version_number:      v('versionNumber'),
+      classification:      v('classification'),
+      collection_name:     document.getElementById('genCollection').value || null,
+      use_rag:             document.getElementById('useRag').checked,
+      include_diagrams:    document.getElementById('includeDiagrams').checked,
+      organization_name:   v('organizationName'),
+      reference_code:      v('referenceCode'),
+      issue_date:          v('issueDate'),
+      recipient_line:      v('recipientLine'),
+      subject_line:        v('subjectLine'),
+      signatory_name:      v('signatoryName'),
+      signatory_title:     v('signatoryTitle'),
+      signatory_department:v('signatoryDepartment'),
+      audience:            v('audience'),
+      desired_outcome:     v('desiredOutcome'),
+      additional_context:  v('additionalContext'),
+    };
+  }
+  function v(id) { const el = document.getElementById(id); return el && el.value.trim() ? el.value.trim() : null; }
+
+  // ---- Health check ----
+  async function checkHealth() {
+    try {
+      const r = await fetch(`${API}/api/health`);
+      const data = await r.json();
+      document.getElementById('healthStatus').textContent = data.status === 'ok' ? '🟢 Online' : '🔴 Error';
+      document.getElementById('healthModel').textContent = data.model_name || '—';
+      document.getElementById('healthActive').textContent = data.active_jobs ?? '—';
+    } catch (e) { document.getElementById('healthStatus').textContent = '🔴 Offline'; }
+  }
+
+  // ---- File upload ----
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles(e.dataTransfer.files); });
+  fileInput.addEventListener('change', () => addFiles(fileInput.files));
+
+  function addFiles(files) {
+    for (const f of files) { if (!selectedFiles.find(x => x.name === f.name)) selectedFiles.push({ file: f, name: f.name, status: 'pending' }); }
+    renderFileList();
+  }
+  function renderFileList() {
+    const ul = document.getElementById('fileList'); ul.innerHTML = '';
+    for (const item of selectedFiles) {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>📄 ${item.name}</span><span class="badge badge-${item.status === 'ok' ? 'ok' : item.status === 'err' ? 'err' : 'pending'}">${item.status === 'ok' ? 'Ingested' : item.status === 'err' ? 'Error' : 'Pending'}</span>`;
+      ul.appendChild(li);
+    }
+  }
+  async function uploadFiles() {
+    if (selectedFiles.length === 0) { alert('Please select files first.'); return; }
+    const btn = document.getElementById('uploadBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Uploading...';
+    const collection = document.getElementById('collectionName').value || 'default';
+    const isRef = document.getElementById('isReference').checked;
+    for (const item of selectedFiles) {
+      if (item.status === 'ok') continue;
+      const fd = new FormData(); fd.append('file', item.file); fd.append('collection_name', collection); fd.append('is_reference', isRef.toString());
+      try { const r = await fetch(`${API}/api/rag/upload`, { method: 'POST', body: fd }); item.status = r.ok ? 'ok' : 'err'; }
+      catch (e) { item.status = 'err'; }
+      renderFileList();
+    }
+    btn.disabled = false; btn.textContent = 'Upload & Ingest'; loadCollections();
+  }
+
+  // ---- Collections ----
+  async function loadCollections() {
+    try {
+      const r = await fetch(`${API}/api/rag/collections`);
+      const cols = await r.json();
+      const tbody = document.getElementById('collectionsBody');
+      const genSel = document.getElementById('genCollection');
+      const currentVal = genSel.value;
+      tbody.innerHTML = '';
+      genSel.innerHTML = '<option value="">None</option><option value="default">default</option>';
+      for (const col of cols) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${col.name}</td><td>${col.count}</td><td><button class="btn btn-danger btn-sm" onclick="deleteCol('${col.name}')">Delete</button></td>`;
+        tbody.appendChild(tr);
+        if (col.name !== 'default') { const opt = document.createElement('option'); opt.value = col.name; opt.textContent = col.name; genSel.appendChild(opt); }
+      }
+      if (cols.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-muted);padding:10px;">No collections found.</td></tr>';
+      genSel.value = currentVal;
+    } catch (e) { console.error('loadCollections error:', e); }
+  }
+  async function deleteCol(name) {
+    if (!confirm(`Delete collection "${name}"?`)) return;
+    try { const r = await fetch(`${API}/api/rag/collections/${encodeURIComponent(name)}`, { method: 'DELETE' }); if (r.ok) loadCollections(); else alert('Failed to delete.'); }
+    catch (e) { alert('Network error.'); }
+  }
+
+  // ---- RAG Search ----
+  async function searchRAG() {
+    const query = document.getElementById('searchQuery').value.trim(); if (!query) return;
+    const col = document.getElementById('searchCollection').value || 'default';
+    const topK = parseInt(document.getElementById('searchTopK').value) || 3;
+    const resultsDiv = document.getElementById('searchResults'); resultsDiv.innerHTML = '<div class="spinner"></div>';
+    try {
+      const r = await fetch(`${API}/api/rag/search?query=${encodeURIComponent(query)}&collection=${encodeURIComponent(col)}&top_k=${topK}`);
+      const data = await r.json();
+      if (!data.results || data.results.length === 0) { resultsDiv.innerHTML = '<p style="color:var(--text-muted);font-size:0.82rem;">No results found.</p>'; return; }
+      resultsDiv.innerHTML = data.results.map((r, i) => `<div class="search-result-item"><strong>#${i+1}</strong> ${escHtml(r.substring(0, 300))}${r.length > 300 ? '…' : ''}</div>`).join('');
+    } catch (e) { resultsDiv.innerHTML = `<p style="color:var(--red);font-size:0.82rem;">Search error: ${e.message}</p>`; }
+  }
+
+  // =========================================================
+  // SINGLE DOCUMENT MODE
+  // =========================================================
+  async function generateSingle() {
+    const shared = sharedFields();
+    if (!shared.prompt || shared.prompt.length < 10) { alert('Please enter a detailed prompt (at least 10 characters).'); return; }
+
+    const btn = document.getElementById('generateBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Starting...';
+    hideSingleResults();
+    document.getElementById('pipelineSection').style.display = 'block';
+    resetPipeline();
+
+    const payload = {
+      ...shared,
+      doc_type: document.getElementById('docType').value,
+      document_title: v('documentTitle'),
+      format_constraints: null,
+    };
+
+    try {
+      const r = await fetch(`${API}/api/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error(await r.text());
+      const data = await r.json();
+      currentJobId = data.job_id;
+      pollSingleJob(currentJobId);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = '✨ Generate Document';
+      showSingleError(`Failed to start: ${e.message}`);
+    }
+  }
+
+  function pollSingleJob(jobId) {
+    if (singlePollInterval) clearInterval(singlePollInterval);
+    singlePollInterval = setInterval(async () => {
+      try {
+        const r = await fetch(`${API}/api/jobs/${jobId}`);
+        const job = await r.json();
+        updateSingleUI(job);
+        if (['completed', 'failed'].includes(job.status)) {
+          clearInterval(singlePollInterval); singlePollInterval = null;
+          const btn = document.getElementById('generateBtn'); btn.disabled = false; btn.textContent = '✨ Generate Document';
+        }
+      } catch (e) { console.error('Poll error:', e); }
+    }, 1500);
+  }
+
+  function updateSingleUI(job) {
+    const status = job.status, progress = job.progress || 0, step = job.current_step || status;
+    const fill = document.getElementById('progressFill');
+    fill.style.width = `${progress}%`;
+    fill.className = 'progress-bar-fill' + (status === 'completed' ? ' complete' : status === 'failed' ? ' error' : '');
+    document.getElementById('progressStep').textContent = step;
+    document.getElementById('progressPct').textContent = `${progress}%`;
+
+    const nodeKey = STATUS_NODE_MAP[status];
+    const nodeIdx = NODE_ORDER.indexOf(nodeKey);
+    for (let i = 0; i < NODE_ORDER.length; i++) {
+      const n = document.getElementById(`node-${NODE_ORDER[i]}`);
+      const c = document.getElementById(`conn-${i+1}`);
+      n.className = 'pipeline-node';
+      if (c) c.className = 'pipeline-connector';
+      if (status === 'failed') {
+        if (i === nodeIdx) n.classList.add('error');
+        else if (i < nodeIdx) { n.classList.add('done'); if (c) c.classList.add('done'); }
+      } else if (status === 'completed') {
+        n.classList.add('done'); if (c) c.classList.add('done');
+      } else {
+        if (i < nodeIdx) { n.classList.add('done'); if (c) c.classList.add('done'); }
+        else if (i === nodeIdx) { n.classList.add('active'); if (c) c.classList.add('active'); }
+      }
+    }
+    if (status === 'completed') showSingleSuccess(job.job_id);
+    else if (status === 'failed') showSingleError(job.error || 'An error occurred during generation.');
+  }
+
+  function showSingleSuccess(jobId) {
+    document.getElementById('resultCard').classList.add('show');
+    document.getElementById('resultMsg').textContent = 'Your professional document has been generated.';
+    document.getElementById('downloadBtn').dataset.jobId = jobId;
+    document.getElementById('errorCard').classList.remove('show');
+  }
+  function showSingleError(msg) {
+    document.getElementById('errorCard').classList.add('show');
+    document.getElementById('errorMsg').textContent = msg;
+    document.getElementById('resultCard').classList.remove('show');
+  }
+  function hideSingleResults() {
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('errorCard').classList.remove('show');
+  }
+  function resetPipeline() {
+    for (const n of NODE_ORDER) { const el = document.getElementById(`node-${n}`); if (el) el.className = 'pipeline-node'; }
+    for (let i = 1; i <= 5; i++) { const c = document.getElementById(`conn-${i}`); if (c) c.className = 'pipeline-connector'; }
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressFill').className = 'progress-bar-fill';
+    document.getElementById('progressStep').textContent = 'Starting...';
+    document.getElementById('progressPct').textContent = '0%';
+  }
+  async function downloadSingle() {
+    const btn = document.getElementById('downloadBtn');
+    const jobId = btn.dataset.jobId || currentJobId;
+    if (!jobId) return;
+    window.location.href = `${API}/api/download/${jobId}`;
+  }
+
+  // =========================================================
+  // BUNDLE MODE — All Four Documents
+  // =========================================================
+  const BUNDLE_DOC_TYPES = ['BRD', 'TSD', 'Product Note', 'Circular'];
+  const DOC_ICONS = { 'BRD': '📑', 'TSD': '⚙️', 'Product Note': '📋', 'Circular': '📜' };
+
+  async function generateBundle() {
+    const shared = sharedFields();
+    if (!shared.prompt || shared.prompt.length < 10) { alert('Please enter a detailed prompt (at least 10 characters).'); return; }
+
+    const btn = document.getElementById('bundleBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Launching all four...';
+    document.getElementById('bundleErrorCard').classList.remove('show');
+
+    const payload = {
+      ...shared,
+      brd_title:          v('brdTitle'),
+      tsd_title:          v('tsdTitle'),
+      product_note_title: v('productNoteTitle'),
+      circular_title:     v('circularTitle'),
+    };
+
+    try {
+      const r = await fetch(`${API}/api/generate/bundle`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error(await r.text());
+      const data = await r.json();
+      currentBundleId = data.bundle_id;
+
+      // Render initial cards
+      renderBundleCards(data.jobs);
+      document.getElementById('bundleSection').style.display = 'block';
+      document.getElementById('bundleZipArea').style.display = 'none';
+
+      btn.textContent = '🗂️ Generate All Four Documents';
+      btn.disabled = false;
+
+      pollBundle(currentBundleId);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = '🗂️ Generate All Four Documents';
+      document.getElementById('bundleErrorCard').classList.add('show');
+      document.getElementById('bundleErrorMsg').textContent = `Failed to start bundle: ${e.message}`;
+    }
+  }
+
+  function renderBundleCards(jobs) {
+    const grid = document.getElementById('bundleGrid'); grid.innerHTML = '';
+    for (const job of jobs) {
+      const card = document.createElement('div');
+      card.className = `bundle-doc-card ${statusClass(job.status)}`;
+      card.id = `bcard-${job.doc_type.replace(' ', '_')}`;
+      card.innerHTML = bundleCardHTML(job);
+      grid.appendChild(card);
+    }
+  }
+
+  function bundleCardHTML(job) {
+    const icon = DOC_ICONS[job.doc_type] || '📄';
+    const sc = statusClass(job.status);
+    const fillClass = job.status === 'completed' ? 'complete' : job.status === 'failed' ? 'error' : '';
+    const dlLink = job.status === 'completed'
+      ? `<a class="download-link" onclick="downloadSingleDoc('${job.job_id}')">⬇️ Download ${job.doc_type}</a>`
+      : '';
+    return `
+      <div class="doc-header">
+        <span class="doc-type">${icon} ${job.doc_type}</span>
+        <span class="doc-status-badge status-${sc}">${job.status}</span>
+      </div>
+      <div class="doc-step">${job.current_step || 'Queued'}</div>
+      <div class="mini-bar-bg"><div class="mini-bar-fill ${fillClass}" style="width:${job.progress||0}%"></div></div>
+      ${dlLink}
+    `;
+  }
+
+  function statusClass(status) {
+    if (status === 'completed') return 'completed';
+    if (status === 'failed' || status === 'FAILED') return 'failed';
+    if (['retrieving','planning','generating_diagrams','writing','reviewing','assembling'].includes(status)) return 'running';
+    return 'pending';
+  }
+
+  function pollBundle(bundleId) {
+    if (bundlePollInterval) clearInterval(bundlePollInterval);
+    bundlePollInterval = setInterval(async () => {
+      try {
+        const r = await fetch(`${API}/api/bundles/${bundleId}`);
+        const data = await r.json();
+        updateBundleUI(data);
+        if (['completed', 'partial'].includes(data.overall_status)) {
+          clearInterval(bundlePollInterval); bundlePollInterval = null;
+        }
+      } catch (e) { console.error('Bundle poll error:', e); }
+    }, 2000);
+  }
+
+  function updateBundleUI(data) {
+    for (const job of data.jobs) {
+      const card = document.getElementById(`bcard-${job.doc_type.replace(' ', '_')}`);
+      if (!card) continue;
+      card.className = `bundle-doc-card ${statusClass(job.status)}`;
+      card.innerHTML = bundleCardHTML(job);
+    }
+    // Show ZIP button as soon as at least one doc is done
+    const anyDone = data.jobs.some(j => j.status === 'completed');
+    document.getElementById('bundleZipArea').style.display = anyDone ? 'block' : 'none';
+  }
+
+  async function downloadSingleDoc(jobId) {
+    window.location.href = `${API}/api/download/${jobId}`;
+  }
+
+  async function downloadBundle() {
+    if (!currentBundleId) return;
+    window.location.href = `${API}/api/bundles/${currentBundleId}/download`;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ---- Init ----
+  checkHealth();
+  loadCollections();
+  setInterval(checkHealth, 30000);
+  document.getElementById('searchQuery').addEventListener('keydown', e => { if (e.key === 'Enter') searchRAG(); });
+</script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 from memory.session_store import store
 from schemas.models import (
@@ -44,7 +45,7 @@ async def generate(req: ResearchGenerateRequest):
         raise HTTPException(status_code=400, detail="Requirement gathering not complete yet")
 
     session.research.status = "generating"
-    state = await generate_research(req.session_id, structured_output)
+    state = await asyncio.to_thread(generate_research, req.session_id, structured_output)
 
     session.research.status = state.get("status", "ready")
     session.research.current_version = state.get("current_version", 1)
@@ -69,7 +70,8 @@ async def feedback(req: ResearchFeedbackRequest):
     session.research.status = "regenerating"
     session.research.feedback_history.append(req.feedback)
 
-    state = await regenerate_with_feedback(
+    state = await asyncio.to_thread(
+        regenerate_with_feedback,
         req.session_id,
         req.feedback,
         req.sections_to_regenerate,

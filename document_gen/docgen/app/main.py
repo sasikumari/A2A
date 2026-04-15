@@ -1,0 +1,662 @@
+"""FastAPI application — DocGen AI."""
+from __future__ import annotations
+
+import hashlib
+import io
+import logging
+import os
+import threading
+import uuid
+import zipfile
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+
+from app.config import settings
+from app.models import (
+    BundleGenerateRequest,
+    BundleJobDetail,
+    BundleStatusResponse,
+    CollectionInfo,
+    EditRequest,
+    EditResponse,
+    GenerateRequest,
+    GenerateResponse,
+    HealthResponse,
+    JobStatusResponse,
+    RAGUploadResponse,
+    SessionDocumentInfo,
+)
+from app.rag.engine import (
+    delete_collection,
+    ingest_file,
+    list_collections,
+    search_collection,
+    extract_reference_structure,
+)
+from app.agents.pipeline import run_pipeline
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# In-memory job store
+# ---------------------------------------------------------------------------
+
+# Structure: { job_id: { status, progress, current_step, error, output_path, prompt } }
+JOBS: dict[str, dict] = {}
+
+# Bundle store: { bundle_id: { job_ids: {doc_type: job_id}, ... } }
+BUNDLES: dict[str, dict] = {}
+
+_BUNDLE_DOC_TYPES = ["BRD", "TSD", "Product Note", "Circular"]
+
+_BUNDLE_DEFAULT_TITLES = {
+    "BRD": "Business Requirements Document",
+    "TSD": "Technical Specification Document",
+    "Product Note": "Product Note",
+    "Circular": "Circular",
+}
+
+STATUS_PROGRESS = {
+    "pending": 0,
+    "retrieving": 10,
+    "planning": 30,
+    "generating_diagrams": 50,
+    "writing": 70,
+    "reviewing": 82,
+    "assembling": 90,
+    "completed": 100,
+    "failed": 0,
+    "FAILED": 0,
+}
+
+STATUS_STEP = {
+    "pending": "Queued",
+    "retrieving": "Retrieving context from knowledge base",
+    "planning": "Planning document structure",
+    "generating_diagrams": "Generating UML diagrams",
+    "writing": "Writing section content",
+    "reviewing": "Reviewing document structure and content",
+    "assembling": "Assembling final document",
+    "completed": "Document ready",
+    "failed": "Generation failed",
+    "FAILED": "Generation failed",
+}
+
+# ---------------------------------------------------------------------------
+# FastAPI app
+# ---------------------------------------------------------------------------
+
+app = FastAPI(
+    title="DocGen AI",
+    description="AI-powered document generator using Ollama + LangGraph",
+    version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------------------------------------------------------------------
+# Background task runner
+# ---------------------------------------------------------------------------
+
+def _update_job(job_id: str, state: dict):
+    status = state.get("status", "pending")
+    JOBS[job_id]["status"] = status
+    JOBS[job_id]["progress"] = STATUS_PROGRESS.get(status, 0)
+    JOBS[job_id]["current_step"] = STATUS_STEP.get(status, status)
+    JOBS[job_id]["error"] = state.get("error")
+    JOBS[job_id]["output_path"] = state.get("output_path")
+
+
+def _run_pipeline_background(job_id: str, initial_state: dict):
+    try:
+        JOBS[job_id]["status"] = "retrieving"
+        final_state = run_pipeline(initial_state)
+        _update_job(job_id, final_state)
+    except Exception as e:
+        logger.error("Pipeline error for job %s: %s", job_id, e, exc_info=True)
+        JOBS[job_id]["status"] = "failed"
+        JOBS[job_id]["error"] = str(e)
+        JOBS[job_id]["progress"] = 0
+        JOBS[job_id]["current_step"] = "Generation failed"
+
+
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_ui():
+    html_path = Path(__file__).parent / "static" / "index.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>DocGen AI</h1><p>UI not found.</p>")
+
+
+@app.post("/api/generate", response_model=GenerateResponse)
+async def generate_document(request: GenerateRequest, background_tasks: BackgroundTasks):
+    job_id = str(uuid.uuid4())
+
+    JOBS[job_id] = {
+        "status": "pending",
+        "progress": 0,
+        "current_step": "Queued",
+        "error": None,
+        "output_path": None,
+        "prompt": request.prompt,
+    }
+
+    initial_state = {
+        "job_id": job_id,
+        "prompt": request.prompt,
+        "doc_type": request.doc_type,
+        "document_title": request.document_title,
+        "version_number": request.version_number,
+        "classification": request.classification,
+        "collection_name": request.collection_name,
+        "reference_structure": None,
+        "use_rag": request.use_rag,
+        "include_diagrams": request.include_diagrams,
+        "audience": request.audience,
+        "desired_outcome": request.desired_outcome,
+        "format_constraints": request.format_constraints,
+        "organization_name": request.organization_name,
+        "reference_code": request.reference_code,
+        "issue_date": request.issue_date,
+        "recipient_line": request.recipient_line,
+        "subject_line": request.subject_line,
+        "signatory_name": request.signatory_name,
+        "signatory_title": request.signatory_title,
+        "signatory_department": request.signatory_department,
+        "additional_context": request.additional_context,
+        "session_id": request.session_id,
+        "rag_context": "",
+        "rag_chunks": [],
+        "document_plan": None,
+        "diagram_specs": [],
+        "generated_diagrams": {},
+        "generated_sections": [],
+        "output_path": None,
+        "status": "pending",
+        "error": None,
+    }
+
+    background_tasks.add_task(_run_pipeline_background, job_id, initial_state)
+
+    return GenerateResponse(
+        job_id=job_id,
+        status="pending",
+        message="Document generation started.",
+    )
+
+
+@app.get("/api/jobs/{job_id}", response_model=JobStatusResponse)
+async def get_job_status(job_id: str):
+    if job_id not in JOBS:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
+    job = JOBS[job_id]
+    return JobStatusResponse(
+        job_id=job_id,
+        status=job.get("status", "pending"),
+        progress=job.get("progress", 0),
+        current_step=job.get("current_step", ""),
+        error=job.get("error"),
+        output_path=job.get("output_path"),
+    )
+
+
+@app.get("/api/download/{job_id}")
+async def download_document(job_id: str):
+    if job_id not in JOBS:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
+    job = JOBS[job_id]
+    if job.get("status") != "completed":
+        raise HTTPException(status_code=400, detail="Document not ready yet.")
+    output_path = job.get("output_path")
+    if not output_path or not Path(output_path).exists():
+        raise HTTPException(status_code=404, detail="Document file not found.")
+    filename = f"document_{job_id[:8]}.docx"
+    return FileResponse(
+        path=output_path,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename=filename,
+    )
+
+
+@app.post("/api/edit/{job_id}", response_model=EditResponse)
+async def edit_document(job_id: str, request: EditRequest):
+    """Edit a specific section of an already-generated document.
+
+    Regenerates only the named section using the edit_instruction, then
+    re-assembles the document. The edited document is saved as document_edited.docx
+    in the same job directory.
+    """
+    if job_id not in JOBS:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
+    job = JOBS[job_id]
+    if job.get("status") != "completed":
+        raise HTTPException(status_code=400, detail="Document must be in 'completed' state before editing.")
+
+    try:
+        from app.tools.document_editor import edit_document_section, edit_full_document
+
+        if request.section_heading.strip().lower() == "full":
+            new_path = edit_full_document(
+                job_id=job_id,
+                edit_instruction=request.edit_instruction,
+            )
+        else:
+            new_path = edit_document_section(
+                job_id=job_id,
+                section_heading=request.section_heading,
+                edit_instruction=request.edit_instruction,
+            )
+        # Update job record to point to the latest document
+        JOBS[job_id]["output_path"] = new_path
+        return EditResponse(
+            job_id=job_id,
+            section_heading=request.section_heading,
+            status="completed",
+            output_path=new_path,
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.error("Edit failed for job %s: %s", job_id, e, exc_info=True)
+        return EditResponse(
+            job_id=job_id,
+            section_heading=request.section_heading,
+            status="failed",
+            error=str(e),
+        )
+
+
+@app.get("/api/sessions/{session_id}/documents", response_model=list[SessionDocumentInfo])
+async def list_session_documents(session_id: str):
+    """List all documents generated for a given session."""
+    from app.config import settings
+    session_dir = Path(settings.output_dir) / "sessions" / session_id
+    if not session_dir.exists():
+        return []
+
+    results: list[SessionDocumentInfo] = []
+    for doc_file in session_dir.glob("*.docx"):
+        # Filename format: {doc_type}_{job_id_prefix}.docx
+        parts = doc_file.stem.rsplit("_", 1)
+        doc_type = parts[0].replace("_", " ").title() if parts else "Unknown"
+        job_id_prefix = parts[1] if len(parts) > 1 else ""
+        # Find matching job
+        matching_job = next(
+            (jid for jid, jdata in JOBS.items() if jid.startswith(job_id_prefix)),
+            job_id_prefix,
+        )
+        stat = doc_file.stat()
+        results.append(SessionDocumentInfo(
+            job_id=matching_job,
+            doc_type=doc_type,
+            document_title=doc_file.stem,
+            output_path=str(doc_file),
+            created_at=datetime.fromtimestamp(stat.st_mtime).isoformat(),
+        ))
+
+    results.sort(key=lambda x: x.created_at, reverse=True)
+    return results
+
+
+@app.post("/api/generate/bundle", response_model=BundleStatusResponse)
+async def generate_bundle(request: BundleGenerateRequest, background_tasks: BackgroundTasks):
+    """Generate BRD + TSD + Product Note + Circular from a single prompt, in parallel."""
+    bundle_id = str(uuid.uuid4())
+    title_overrides = {
+        "BRD": request.brd_title,
+        "TSD": request.tsd_title,
+        "Product Note": request.product_note_title,
+        "Circular": request.circular_title,
+    }
+
+    job_ids: dict[str, str] = {}
+
+    for doc_type in _BUNDLE_DOC_TYPES:
+        job_id = str(uuid.uuid4())
+        job_ids[doc_type] = job_id
+
+        document_title = title_overrides.get(doc_type) or _BUNDLE_DEFAULT_TITLES[doc_type]
+
+        JOBS[job_id] = {
+            "status": "pending",
+            "progress": 0,
+            "current_step": "Queued",
+            "error": None,
+            "output_path": None,
+            "prompt": request.prompt,
+            "doc_type": doc_type,
+            "bundle_id": bundle_id,
+        }
+
+        initial_state = {
+            "job_id": job_id,
+            "prompt": request.prompt,
+            "doc_type": doc_type,
+            "document_title": document_title,
+            "version_number": request.version_number,
+            "classification": request.classification,
+            "collection_name": request.collection_name,
+            "reference_structure": None,
+            "use_rag": request.use_rag,
+            "include_diagrams": request.include_diagrams and doc_type != "Circular",
+            "audience": request.audience,
+            "desired_outcome": request.desired_outcome,
+            "format_constraints": None,
+            "organization_name": request.organization_name,
+            "reference_code": request.reference_code,
+            "issue_date": request.issue_date,
+            "recipient_line": request.recipient_line,
+            "subject_line": request.subject_line,
+            "signatory_name": request.signatory_name,
+            "signatory_title": request.signatory_title,
+            "signatory_department": request.signatory_department,
+            "additional_context": request.additional_context,
+            "session_id": request.session_id,
+            "rag_context": "",
+            "rag_chunks": [],
+            "document_plan": None,
+            "diagram_specs": [],
+            "generated_diagrams": {},
+            "generated_sections": [],
+            "output_path": None,
+            "status": "pending",
+            "error": None,
+        }
+
+        # Launch each document pipeline in its own thread so all 4 run in parallel.
+        # Using daemon=True means the threads are cleaned up if the server exits.
+        t = threading.Thread(
+            target=_run_pipeline_background,
+            args=(job_id, initial_state),
+            daemon=True,
+        )
+        t.start()
+
+    BUNDLES[bundle_id] = {"job_ids": job_ids}
+
+    jobs_detail = [
+        BundleJobDetail(
+            doc_type=dt,
+            job_id=jid,
+            status="pending",
+            progress=0,
+            current_step="Queued",
+        )
+        for dt, jid in job_ids.items()
+    ]
+
+    return BundleStatusResponse(
+        bundle_id=bundle_id,
+        overall_status="pending",
+        jobs=jobs_detail,
+    )
+
+
+@app.get("/api/bundles/{bundle_id}", response_model=BundleStatusResponse)
+async def get_bundle_status(bundle_id: str):
+    if bundle_id not in BUNDLES:
+        raise HTTPException(status_code=404, detail=f"Bundle {bundle_id} not found.")
+
+    job_ids = BUNDLES[bundle_id]["job_ids"]
+    jobs_detail = []
+    statuses = []
+
+    for doc_type, job_id in job_ids.items():
+        job = JOBS.get(job_id, {})
+        status = job.get("status", "pending")
+        statuses.append(status)
+        jobs_detail.append(BundleJobDetail(
+            doc_type=doc_type,
+            job_id=job_id,
+            status=status,
+            progress=job.get("progress", 0),
+            current_step=job.get("current_step", ""),
+            error=job.get("error"),
+            output_path=job.get("output_path"),
+        ))
+
+    terminal = {"completed", "failed", "FAILED"}
+    if all(s == "completed" for s in statuses):
+        overall = "completed"
+    elif all(s in terminal for s in statuses):
+        overall = "partial"  # some succeeded, some failed
+    elif any(s in terminal for s in statuses):
+        overall = "running"
+    else:
+        overall = "running" if any(s != "pending" for s in statuses) else "pending"
+
+    return BundleStatusResponse(bundle_id=bundle_id, overall_status=overall, jobs=jobs_detail)
+
+
+@app.get("/api/bundles/{bundle_id}/download")
+async def download_bundle(bundle_id: str):
+    """Download all completed documents in the bundle as a ZIP archive."""
+    if bundle_id not in BUNDLES:
+        raise HTTPException(status_code=404, detail=f"Bundle {bundle_id} not found.")
+
+    job_ids = BUNDLES[bundle_id]["job_ids"]
+    ready = {
+        doc_type: JOBS[job_id]
+        for doc_type, job_id in job_ids.items()
+        if JOBS.get(job_id, {}).get("status") == "completed"
+        and JOBS.get(job_id, {}).get("output_path")
+        and Path(JOBS[job_id]["output_path"]).exists()
+    }
+
+    if not ready:
+        raise HTTPException(status_code=400, detail="No completed documents in this bundle yet.")
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for doc_type, job in ready.items():
+            safe_name = doc_type.replace(" ", "_").lower()
+            zf.write(job["output_path"], arcname=f"{safe_name}.docx")
+    buf.seek(0)
+
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="bundle_{bundle_id[:8]}.zip"'},
+    )
+
+
+@app.post("/api/rag/upload", response_model=RAGUploadResponse)
+async def upload_rag_file(
+    file: UploadFile = File(...),
+    collection_name: str = Form(default="default"),
+    is_reference: bool = Form(default=False),
+):
+    # Save file with UUID prefix
+    safe_name = Path(file.filename).name if file.filename else "upload.bin"
+    file_id = uuid.uuid4().hex[:8]
+    dest = Path(settings.upload_dir) / f"{file_id}_{safe_name}"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+
+    content = await file.read()
+    dest.write_bytes(content)
+
+    chunks_added = 0
+    try:
+        chunks_added = ingest_file(str(dest), collection_name=collection_name)
+    except Exception as e:
+        logger.error("Ingest failed for %s: %s", dest, e)
+        raise HTTPException(status_code=500, detail=f"Failed to ingest file: {e}")
+
+    return RAGUploadResponse(
+        filename=safe_name,
+        collection_name=collection_name,
+        chunks_added=chunks_added,
+        is_reference=is_reference,
+        message=f"Ingested {chunks_added} chunks into collection '{collection_name}'.",
+    )
+
+
+@app.get("/api/rag/collections", response_model=list[CollectionInfo])
+async def get_collections():
+    cols = list_collections()
+    return [CollectionInfo(name=c["name"], count=c["count"]) for c in cols]
+
+
+@app.delete("/api/rag/collections/{name}")
+async def remove_collection(name: str):
+    success = delete_collection(name)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Collection '{name}' not found or could not be deleted.")
+    return {"message": f"Collection '{name}' deleted."}
+
+
+@app.get("/api/rag/search")
+async def search_rag(
+    query: str,
+    collection: str = "default",
+    top_k: int = 5,
+):
+    if not query:
+        raise HTTPException(status_code=400, detail="Query parameter required.")
+    results = search_collection(query, collection_name=collection, top_k=top_k)
+    return {"query": query, "collection": collection, "results": results}
+
+
+@app.get("/api/jobs/{job_id}/content")
+async def get_job_content(job_id: str):
+    """Return the generated document as markdown text (for integration with external UIs).
+
+    Reads *generated_sections.json* from the job output directory and converts it to
+    a markdown string that can be displayed inline — no DOCX download required.
+    """
+    if job_id not in JOBS:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
+    job = JOBS[job_id]
+    if job.get("status") not in ("completed",):
+        raise HTTPException(status_code=400, detail=f"Job {job_id} is not completed yet (status={job.get('status')}).")
+
+    output_path = job.get("output_path")
+    if not output_path:
+        raise HTTPException(status_code=404, detail="No output path recorded for this job.")
+    job_dir = Path(output_path).parent
+    sections_file = job_dir / "generated_sections.json"
+    plan_file = job_dir / "document_plan.json"
+
+    if not sections_file.exists():
+        raise HTTPException(status_code=404, detail="Generated sections not found for this job.")
+
+    import json as _json
+    sections = _json.loads(sections_file.read_text(encoding="utf-8"))
+
+    # Build markdown from sections
+    lines: list[str] = []
+
+    # Add document title / meta from plan if available
+    if plan_file.exists():
+        plan = _json.loads(plan_file.read_text(encoding="utf-8"))
+        title = plan.get("title", "")
+        subtitle = plan.get("subtitle", "")
+        doc_type = plan.get("doc_type", "")
+        meta = plan.get("document_meta", {})
+        if title:
+            lines.append(f"# {title}")
+        if subtitle:
+            lines.append(f"*{subtitle}*")
+        if doc_type:
+            lines.append(f"**Document Type:** {doc_type}")
+        for k, v in meta.items():
+            if v:
+                lines.append(f"**{k.replace('_', ' ').title()}:** {v}")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+
+    for section in sections:
+        heading = section.get("section_heading", "")
+        level = section.get("level", 1)
+        render_style = section.get("render_style", "body")
+        prefix = "#" * min(level + 1, 4)
+
+        if heading:
+            lines.append(f"{prefix} {heading}")
+            lines.append("")
+
+        if render_style == "cover":
+            for p in section.get("paragraphs", []):
+                if p and p.strip():
+                    lines.append(p.strip())
+            lines.append("")
+            continue
+
+        # Paragraphs
+        for p in section.get("paragraphs", []):
+            if p and p.strip():
+                lines.append(p.strip())
+                lines.append("")
+
+        # Bullet points
+        bullets = section.get("bullet_points", [])
+        if bullets:
+            for b in bullets:
+                lines.append(f"- {b}")
+            lines.append("")
+
+        # Numbered items
+        numbered = section.get("numbered_items", [])
+        if numbered:
+            for i, item in enumerate(numbered, 1):
+                lines.append(f"{i}. {item}")
+            lines.append("")
+
+        # Table data
+        table = section.get("table_data") or {}
+        headers = table.get("headers", [])
+        rows = table.get("rows", [])
+        if headers and rows:
+            lines.append("| " + " | ".join(str(h) for h in headers) + " |")
+            lines.append("| " + " | ".join("---" for _ in headers) + " |")
+            for row in rows:
+                lines.append("| " + " | ".join(str(c) for c in row) + " |")
+            lines.append("")
+
+        # Code blocks
+        for code in section.get("code_blocks", []):
+            if code and code.strip():
+                lines.append("```")
+                lines.append(code.strip())
+                lines.append("```")
+                lines.append("")
+
+    markdown = "\n".join(lines)
+    return {
+        "job_id": job_id,
+        "doc_type": job.get("doc_type", ""),
+        "output_path": output_path,
+        "markdown": markdown,
+    }
+
+
+@app.get("/api/health", response_model=HealthResponse)
+async def health_check():
+    active = sum(1 for j in JOBS.values() if j.get("status") not in ("completed", "failed", "FAILED"))
+    return HealthResponse(
+        status="ok",
+        model_name=settings.model_name,
+        ollama_url=settings.ollama_base_url,
+        active_jobs=active,
+        total_jobs=len(JOBS),
+    )

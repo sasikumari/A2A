@@ -14,6 +14,9 @@ Graph flow:
   [INTERRUPT — wait for user answer]         │
        ↓                                     │
   process_answer ──────────────────────────→─┘
+
+NOTE: All nodes are SYNC to avoid Python 3.14 asyncio/LangGraph deadlock.
+      The public API functions are called via asyncio.to_thread() in the router.
 """
 import json
 import logging
@@ -25,7 +28,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END, START
 from langgraph.checkpoint.memory import MemorySaver
 
-from agents.rag_client import query_rag
+from agents.rag_client import query_rag_sync
 import config
 
 logger = logging.getLogger(__name__)
@@ -72,15 +75,15 @@ def _llm():
 
 
 # --------------------------------------------------------------------------
-# Nodes
+# Nodes (all sync — avoids Python 3.14 asyncio/LangGraph deadlock)
 # --------------------------------------------------------------------------
 
-async def interpret_input(state: RequirementState) -> dict:
+def interpret_input(state: RequirementState) -> dict:
     """Parse the initial feature request and pre-fill what we can."""
     llm = _llm()
 
-    # Pull relevant RAG context
-    rag = await query_rag(state["feature_request"], top_k=5)
+    # Pull relevant RAG context (sync)
+    rag = query_rag_sync(state["feature_request"], top_k=5)
     rag_context = rag["enriched_context"]
 
     system = SystemMessage(content=f"""You are an expert product manager analyzing a feature request.
@@ -101,11 +104,10 @@ RAG Context:
 """)
     human = HumanMessage(content=f"Feature request: {state['feature_request']}")
 
-    response = await llm.ainvoke([system, human])
+    response = llm.invoke([system, human])
     try:
         gathered = json.loads(response.content)
     except json.JSONDecodeError:
-        # Extract JSON from markdown code block if present
         import re
         match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", response.content)
         gathered = json.loads(match.group(1)) if match else {s: {} for s in SECTIONS}
@@ -140,11 +142,6 @@ def _should_continue(state: RequirementState) -> str:
 
 
 def _route_entry(state: RequirementState) -> Literal["interpret_input", "process_answer"]:
-    """
-    First step of each invoke: after checkpoint + input merge, either parse the
-    initial feature request or process the latest user reply. Without this, every
-    follow-up re-runs interpret_input and re-appends the opening user message.
-    """
     messages = state.get("messages") or []
     if len(messages) >= 2:
         if messages[-1]["role"] == "user" and messages[-2]["role"] == "agent":
@@ -152,7 +149,7 @@ def _route_entry(state: RequirementState) -> Literal["interpret_input", "process
     return "interpret_input"
 
 
-async def generate_question(state: RequirementState) -> dict:
+def generate_question(state: RequirementState) -> dict:
     """Generate a natural clarification question for the missing field."""
     llm = _llm()
     section, field = state["current_question_key"].split(".", 1)
@@ -199,7 +196,7 @@ Conversation so far:
 
 Generate the next clarification question:""")
 
-    response = await llm.ainvoke([system, human])
+    response = llm.invoke([system, human])
     question = response.content.strip()
 
     return {
@@ -209,7 +206,7 @@ Generate the next clarification question:""")
     }
 
 
-async def process_answer(state: RequirementState) -> dict:
+def process_answer(state: RequirementState) -> dict:
     """Parse the user's latest answer and store into gathered state."""
     llm = _llm()
     section, field = state["current_question_key"].split(".", 1)
@@ -219,10 +216,9 @@ async def process_answer(state: RequirementState) -> dict:
 Return a concise 1-3 sentence summary of the answer. Return ONLY the answer text.""")
     human = HumanMessage(content=last_user_msg)
 
-    response = await llm.ainvoke([system, human])
+    response = llm.invoke([system, human])
     extracted = response.content.strip()
 
-    # Deep-copy gathered and update the specific field
     gathered = {s: dict(fields) for s, fields in state["gathered"].items()}
     if section not in gathered:
         gathered[section] = {}
@@ -231,30 +227,26 @@ Return a concise 1-3 sentence summary of the answer. Return ONLY the answer text
     return {"gathered": gathered}
 
 
-async def finalize_output(state: RequirementState) -> dict:
-    """
-    Fill any still-null fields using RAG + web context, then produce final JSON.
-    """
+def finalize_output(state: RequirementState) -> dict:
+    """Fill any still-null fields using RAG context, then produce final JSON."""
     llm = _llm()
     gathered = state["gathered"]
 
-    # For sections still missing data, try RAG auto-fill
     for section in SECTIONS:
         fields = SECTION_FIELDS[section]
         for field_key in fields:
             value = gathered.get(section, {}).get(field_key)
             if value is None or str(value).strip() in ("", "null"):
-                rag = await query_rag(
+                rag = query_rag_sync(
                     f"{state['feature_request']} - {section} - {field_key}",
                     top_k=3,
                 )
                 if rag["results"]:
-                    # Ask LLM to infer the field from RAG context
                     sys_msg = SystemMessage(content=f"""Based on the context below, infer a plausible value for:
 Section: {section}, Field: {field_key}
 Return a 1-2 sentence inference. If not determinable, return 'To be determined based on detailed analysis.'""")
                     h_msg = HumanMessage(content=rag["enriched_context"][:2000])
-                    r = await llm.ainvoke([sys_msg, h_msg])
+                    r = llm.invoke([sys_msg, h_msg])
                     if section not in gathered:
                         gathered[section] = {}
                     gathered[section][field_key] = r.content.strip()
@@ -295,8 +287,7 @@ def build_requirement_graph() -> StateGraph:
         {"ask": "generate_question", "finalize": "finalize_output"},
     )
 
-    # After generating a question, interrupt and wait for user input
-    workflow.add_edge("generate_question", END)   # Pause here; resume with process_answer
+    workflow.add_edge("generate_question", END)
 
     workflow.add_edge("process_answer", "check_completeness")
     workflow.add_edge("finalize_output", END)
@@ -304,20 +295,24 @@ def build_requirement_graph() -> StateGraph:
     return workflow
 
 
-# Compile with memory checkpointer for stateful multi-turn
-_checkpointer = MemorySaver()
-requirement_graph = build_requirement_graph().compile(checkpointer=_checkpointer)
+# Lazy-compiled graph
+_checkpointer = None
+_requirement_graph = None
+
+def _get_graph():
+    global _checkpointer, _requirement_graph
+    if _requirement_graph is None:
+        _checkpointer = MemorySaver()
+        _requirement_graph = build_requirement_graph().compile(checkpointer=_checkpointer)
+    return _requirement_graph
 
 
 # --------------------------------------------------------------------------
-# Public API used by the router
+# Public API — sync, called via asyncio.to_thread() from the router
 # --------------------------------------------------------------------------
 
-async def start_requirement_gathering(session_id: str, feature_request: str) -> dict:
-    """
-    Start a new requirement gathering session.
-    Returns agent state after first question is generated.
-    """
+def start_requirement_gathering(session_id: str, feature_request: str) -> dict:
+    """Start a new requirement gathering session. Returns state after first question."""
     config_dict = {"configurable": {"thread_id": session_id}}
     initial_state = {
         "feature_request": feature_request,
@@ -330,28 +325,20 @@ async def start_requirement_gathering(session_id: str, feature_request: str) -> 
         "structured_output": None,
         "rag_context": "",
     }
-    result = await requirement_graph.ainvoke(initial_state, config=config_dict)
-    return result
+    return _get_graph().invoke(initial_state, config=config_dict)
 
 
-async def answer_clarification(session_id: str, answer: str) -> dict:
-    """
-    Resume the graph with the user's answer.
-    """
+def answer_clarification(session_id: str, answer: str) -> dict:
+    """Resume the graph with the user's answer."""
     config_dict = {"configurable": {"thread_id": session_id}}
 
-    # Get current state snapshot
-    snapshot = requirement_graph.get_state(config_dict)
+    snapshot = _get_graph().get_state(config_dict)
     current = snapshot.values
 
-    # If already complete, just return current state
     if current.get("status") == "complete":
         return current
 
-    # Only pass the new turn. `messages` uses operator.add — sending the full list
-    # concatenates it onto the checkpoint again and duplicates the whole thread.
-    result = await requirement_graph.ainvoke(
+    return _get_graph().invoke(
         {"messages": [{"role": "user", "content": answer}]},
         config=config_dict,
     )
-    return result

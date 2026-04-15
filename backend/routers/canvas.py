@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from memory.session_store import store
@@ -67,7 +68,7 @@ async def generate(req: CanvasGenerateRequest):
     requirement_output = session.requirement.structured_output or {}
 
     session.canvas.status = "generating"
-    state = await generate_product_canvas(req.session_id, research_report, requirement_output)
+    state = await asyncio.to_thread(generate_product_canvas, req.session_id, research_report, requirement_output)
 
     session.canvas.status = state.get("status", "ready")
     session.canvas.current_version = state.get("current_version", 1)
@@ -85,7 +86,7 @@ async def regen_section(req: CanvasRegenerateSectionRequest):
     if req.section_key not in CANVAS_SECTION_KEYS:
         raise HTTPException(status_code=400, detail=f"Invalid section key: {req.section_key}")
 
-    state = await regenerate_canvas_section(req.session_id, req.section_key, req.instructions)
+    state = await asyncio.to_thread(regenerate_canvas_section, req.session_id, req.section_key, req.instructions)
 
     session = store.get(req.session_id)
     session.canvas.status = state.get("status", "ready")
@@ -104,7 +105,7 @@ async def update_section(req: CanvasSectionUpdate):
     if req.section_key not in CANVAS_SECTION_KEYS:
         raise HTTPException(status_code=400, detail=f"Invalid section key: {req.section_key}")
 
-    state = await update_canvas_section_manually(req.session_id, req.section_key, req.content)
+    state = await asyncio.to_thread(update_canvas_section_manually, req.session_id, req.section_key, req.content)
 
     session = store.get(req.session_id)
     session.canvas.status = state.get("status", "ready")
@@ -162,16 +163,17 @@ async def export_canvas(session_id: str, format: ExportFormat = ExportFormat.doc
     current_v = session.canvas.current_version
     cv = next((c for c in session.canvas.canvases if c["version"] == current_v), session.canvas.canvases[-1])
     sections_dict = {s["key"]: s["content"] for s in cv.get("sections", [])}
+    feature_title = session.requirement.feature_request[:60] if session.requirement.feature_request else ""
 
     if format == ExportFormat.docx:
-        file_bytes = export_docx(sections_dict)
+        file_bytes = export_docx(sections_dict, feature_title=feature_title)
         return Response(
             content=file_bytes,
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             headers={"Content-Disposition": f"attachment; filename=product_canvas_{session_id}.docx"},
         )
     else:
-        file_bytes = export_pdf(sections_dict)
+        file_bytes = export_pdf(sections_dict, feature_title=feature_title)
         return Response(
             content=file_bytes,
             media_type="application/pdf",

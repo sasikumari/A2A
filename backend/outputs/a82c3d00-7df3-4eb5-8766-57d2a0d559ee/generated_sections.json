@@ -1,0 +1,345 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The Unified Payments Interface (UPI) ecosystem currently facilitates seamless peer-to-peer and merchant transactions through a robust network of banks and payment service providers (PSPs). The core components of UPI include the NPCI switch, which routes messages between participants, and the Common Library (CL), which ensures secure authentication and transaction processing. UPI apps, such as PhonePe, GPay, and BHIM, serve as the primary interface for users, enabling them to initiate transactions using Virtual Payment Addresses (VPAs). The existing system supports various transaction types, including direct payments, balance inquiries, and mandate creations, leveraging a secure and efficient message protocol.",
+      "Despite the extensive capabilities of the current UPI system, there are limitations in handling transactions that require biometric authentication. The existing infrastructure primarily relies on PIN-based authentication, which may not be sufficient for transactions requiring higher security levels. Additionally, the current system does not fully support asynchronous settlement confirmations, leading to potential delays in transaction status updates. These gaps necessitate enhancements to accommodate biometric authentication and improve the efficiency of transaction confirmations.",
+      "The proposed technical approach aims to integrate biometric authentication into the UPI framework, enhancing security and user convenience. By incorporating a refCategory='05' designation for biometric-authenticated transactions, the system can distinguish and process these transactions with the necessary security protocols. Furthermore, updating the CL version to support biometric features ensures compatibility across UPI apps. This approach not only addresses the security limitations but also aligns with the growing demand for biometric solutions in digital payments, providing a more secure and streamlined user experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The feature being specified is a biometric authentication enhancement for UPI transactions, designed to increase security and streamline the user experience. This enhancement allows users to authenticate transactions using biometric data, such as fingerprints or facial recognition, instead of traditional PINs. The integration of biometric authentication is facilitated through the Common Library (CL) provided by NPCI, which is embedded within UPI Apps. This feature touches several key participants in the UPI ecosystem, including the UPI App, PSP Bank, Issuer/Remitter Bank, and Beneficiary/Payee Bank. By leveraging secure enclave technology on the user's device, the feature ensures that biometric data is stored and processed securely, minimizing the risk of unauthorized access.",
+      "From a business perspective, the introduction of biometric authentication aims to enhance user trust and reduce transaction friction, thereby encouraging more frequent use of UPI for digital payments. The feature supports a seamless flow where the UPI App captures the user's biometric data, which is then encrypted and sent to the PSP Bank. The PSP Bank, in turn, communicates with NPCI to authenticate the transaction with the Issuer/Remitter Bank. Once authenticated, the transaction proceeds through the standard UPI flow, culminating in the crediting of the Beneficiary/Payee Bank account. This process not only improves security but also expedites the transaction process, ultimately leading to higher transaction volumes and increased user satisfaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI system is designed as a highly integrated, real-time payment network that facilitates seamless transactions between various participants. At the core of this system is the NPCI Switch, which acts as the central routing engine for all UPI messages. The Payment Service Provider (PSP) Bank hosts the UPI App, which serves as the customer-facing interface for initiating payment requests. The UPI App captures user authentication data, such as PIN or biometric information, and securely transmits this data to the PSP Bank using the Common Library (CL) provided by NPCI. This CL ensures that all sensitive information is encrypted and securely handled.",
+      "Once a payment request is initiated by the UPI App, the PSP Bank sends a ReqPay message to the NPCI Switch, which then coordinates the transaction across the involved banks. The Issuer or Remitter Bank is responsible for authenticating the payer and debiting their account, while the Beneficiary or Payee Bank credits the recipient's account. The NPCI Switch ensures that each step of the transaction is executed in sequence, providing confirmation messages to both the payer and payee through their respective PSPs. Key design decisions include the use of a nonce-based challenge to prevent replay attacks and the integration of a TEE or Secure Enclave for storing sensitive data on the device."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The setting and enrollment process for UPI involves multiple entities working in a coordinated manner to ensure secure and efficient user onboarding. This process begins with the UPI App, which initiates the enrollment request, and involves the PSP, NPCI, and the Issuer Bank. Each entity has specific responsibilities to authenticate the user, validate the credentials, and complete the enrollment. This flow ensures that users can securely register their devices and accounts to use UPI services, leveraging the Common Library for secure authentication and communication."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify device compatibility and app version",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Initiate enrollment request with user details",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Forward enrollment request to NPCI",
+          "PSP"
+        ],
+        [
+          "Step 3",
+          "Validate request and route to Issuer Bank",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Authenticate user and confirm enrollment",
+          "Issuer Bank"
+        ],
+        [
+          "Step 5",
+          "Send enrollment confirmation back to NPCI",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "Relay confirmation to PSP",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Notify UPI App of successful enrollment",
+          "PSP"
+        ],
+        [
+          "Post Response",
+          "Display enrollment success message to user",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Process Flow: Transaction.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section outlines the technical specifications for the integration and enhancement of UPI APIs, focusing on the REQ_PAY, REQ_CHK_TXN, and REQ_AUTH_DETAILS message types. The scope of changes includes updates to the authentication processes, transaction status checks, and payment request handling to support enhanced security features and improved transaction reliability. Engineers at Banks, PSPs, TSPs, and NPCI will find detailed API specifications in the following subsections, which are essential for implementing the latest UPI functionalities."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers i. Primary API Specifications.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field / Element",
+        "Type",
+        "Length",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "schemaVersion",
+          "string",
+          "var",
+          "Replace with normative version field for your API.",
+          "Yes"
+        ],
+        [
+          "requestId",
+          "string",
+          "var",
+          "Correlation id for tracing; replace with your idempotency key if used.",
+          "Yes"
+        ],
+        [
+          "payload",
+          "object",
+          "n/a",
+          "Replace with message-specific body per your specification.",
+          "Yes"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers ii. Secondary API Specifications.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field / Element",
+        "Type",
+        "Length",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "schemaVersion",
+          "string",
+          "var",
+          "Replace with normative version field for your API.",
+          "Yes"
+        ],
+        [
+          "requestId",
+          "string",
+          "var",
+          "Correlation id for tracing; replace with your idempotency key if used.",
+          "Yes"
+        ],
+        [
+          "payload",
+          "object",
+          "n/a",
+          "Replace with message-specific body per your specification.",
+          "Yes"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers iii. Error Handling.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "Operation",
+        "Component",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "E1",
+          "E1",
+          "Eligibility or precondition failed",
+          "Pre-check",
+          "Originating service",
+          "BD"
+        ],
+        [
+          "E2",
+          "E2",
+          "Activation or registration failed",
+          "Setup",
+          "Credential service",
+          "TD"
+        ],
+        [
+          "E3",
+          "E3",
+          "Authentication or validation failed",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "E4",
+          "E4",
+          "Credential mismatch or replay detected",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "TO",
+          "TO",
+          "Timeout waiting for downstream response",
+          "Any",
+          "Switch / broker",
+          "TD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers iv. Note:.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

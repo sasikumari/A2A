@@ -30,6 +30,8 @@ const useSessionStore = create((set, get) => ({
     canvas: null,
     canvasStatus: 'idle',
     canvasVersions: [],
+    docBundle: null,
+    docStatus: 'idle',
     loading: false,
     error: null,
   }),
@@ -89,6 +91,12 @@ const useSessionStore = create((set, get) => ({
     canvasStatus: data.status,
     canvasVersions: data.versions || [],
   }),
+
+  // ── Agent 4: Document Generation ─────────────────────────
+  docBundle: null,         // { bundle_id, overall_status, jobs: [{doc_type, job_id, status, progress, current_step, output_path}] }
+  docStatus: 'idle',       // idle | generating | partial | completed | failed
+  setDocBundle: (data) => set({ docBundle: data, docStatus: data?.overall_status || 'idle' }),
+  clearDocBundle: () => set({ docBundle: null, docStatus: 'idle' }),
 
   // ── UI State ──────────────────────────────────────────────
   loading: false,

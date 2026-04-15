@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 from memory.session_store import store
 from schemas.models import (
@@ -31,7 +32,7 @@ async def start(req: RequirementStartRequest):
     session.requirement.feature_request = req.feature_request
     session.requirement.status = "clarifying"
 
-    state = await start_requirement_gathering(req.session_id, req.feature_request)
+    state = await asyncio.to_thread(start_requirement_gathering, req.session_id, req.feature_request)
 
     # Sync to session store
     session.requirement.messages = state.get("messages", [])
@@ -48,7 +49,7 @@ async def respond(req: RequirementRespondRequest):
     if not store.exists(req.session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
-    state = await answer_clarification(req.session_id, req.answer)
+    state = await asyncio.to_thread(answer_clarification, req.session_id, req.answer)
 
     session = store.get(req.session_id)
     session.requirement.messages = state.get("messages", [])

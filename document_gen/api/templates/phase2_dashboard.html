@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NPCI A2A Platform — Phase 2 + Product Builder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family:'Outfit',sans-serif; background:#f8fafc; color:#0f172a; }
+
+    /* Stage bar */
+    .stage-btn { color:#94a3b8; border-color:transparent; background:transparent; cursor:pointer; font-family:'Outfit',sans-serif; }
+    .stage-btn:hover { background:#f8fafc; color:#475569; border-color:#e2e8f0; }
+    .stage-btn.active-stage { background:linear-gradient(135deg,#7c3aed15,#4f46e515); color:#6d28d9; border-color:#ddd6fe; }
+    .stage-btn.completed-stage { color:#059669; border-color:#a7f3d0; background:#f0fdf4; }
+
+    /* Dark content area */
+    .dark-wrap {
+      background:#030712;
+      background-image:radial-gradient(circle at 50% 0%,#1e1b4b 0%,#030712 100%);
+    }
+    .glass { background:rgba(17,24,39,.7); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.05); box-shadow:0 8px 32px rgba(0,0,0,.4); }
+    .glass-panel { background:rgba(31,41,55,.4); border:1px solid rgba(255,255,255,.05); }
+
+    /* Buttons */
+    .btn-primary { background:linear-gradient(135deg,#4f46e5,#7c3aed); color:white; transition:all .3s cubic-bezier(.4,0,.2,1); cursor:pointer; border:none; font-family:'Outfit',sans-serif; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(79,70,229,.4); }
+    .btn-success { background:linear-gradient(135deg,#059669,#10b981); color:white; box-shadow:0 4px 12px rgba(16,185,129,.2); cursor:pointer; border:none; font-family:'Outfit',sans-serif; }
+    .btn-danger  { background:linear-gradient(135deg,#dc2626,#ef4444);  color:white; box-shadow:0 4px 12px rgba(239,68,68,.2); cursor:pointer; border:none; font-family:'Outfit',sans-serif; }
+    .btn-cyan    { background:linear-gradient(135deg,#0891b2,#06b6d4);  color:white; cursor:pointer; border:none; font-family:'Outfit',sans-serif; }
+
+    /* Code font */
+    .mono { font-family:'JetBrains Mono',monospace; }
+
+    /* Scrollbars */
+    .scr::-webkit-scrollbar { width:5px; height:5px; }
+    .scr::-webkit-scrollbar-track { background:#0f172a; }
+    .scr::-webkit-scrollbar-thumb { background:#334155; border-radius:3px; }
+
+    /* Animations */
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation:fadeIn .35s ease-out forwards; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .spin { animation:spin 1s linear infinite; }
+    @keyframes pulse-glow { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .pulse-glow { animation:pulse-glow 2s ease-in-out infinite; }
+
+    /* Canvas tiles */
+    .canvas-section {
+      background:rgba(17,24,39,.6);
+      border:1px solid rgba(99,102,241,.2);
+      border-radius:12px;
+      transition:all .2s;
+    }
+    .canvas-section:hover { border-color:rgba(99,102,241,.4); }
+    .canvas-section.approved { border-color:rgba(16,185,129,.4); background:rgba(16,185,129,.05); }
+
+    /* Thinking steps */
+    .think-step { background:rgba(250,204,21,.06); border:1px solid rgba(250,204,21,.15); border-radius:10px; padding:10px 14px; margin-bottom:8px; }
+    .think-step.done { background:rgba(16,185,129,.06); border-color:rgba(16,185,129,.2); }
+    .think-step.active { background:rgba(99,102,241,.1); border-color:rgba(99,102,241,.3); }
+
+    /* Flow step */
+    .flow-step { flex-shrink:0; display:flex; align-items:center; gap:8px; cursor:pointer; opacity:.6; transition:all .2s; padding:4px 8px; border-radius:6px; }
+    .flow-step:hover { opacity:.9; background:rgba(255,255,255,.05); }
+    .flow-step.active { opacity:1; background:rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.3); }
+    .step-dot { width:8px; height:8px; border-radius:50%; background:#64748b; }
+    .active .step-dot { background:#3b82f6; box-shadow:0 0 8px #3b82f6; }
+
+    /* Highlight */
+    .highlight-tag { color:#facc15; font-weight:bold; background:rgba(250,204,21,.1); padding:0 2px; border-radius:2px; }
+    .highlight-attr { color:#ff7e7e; }
+
+    /* Doc card */
+    .doc-card {
+      background:rgba(17,24,39,.8);
+      border:1px solid rgba(99,102,241,.2);
+      border-radius:12px;
+      padding:16px;
+      transition:all .2s;
+    }
+    .doc-card:hover { border-color:rgba(99,102,241,.4); transform:translateY(-1px); }
+
+    /* Mode toggle */
+    .mode-pill {
+      padding:6px 14px;
+      border-radius:20px;
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .2s;
+      border:1px solid transparent;
+    }
+    .mode-pill.active-mode { background:rgba(99,102,241,.2); color:#a5b4fc; border-color:rgba(99,102,241,.4); }
+    .mode-pill:not(.active-mode) { color:#64748b; }
+    .mode-pill:hover:not(.active-mode) { color:#94a3b8; background:rgba(255,255,255,.03); }
+  </style>
+</head>
+
+<body>
+
+<!-- ── Product Builder Header ── -->
+<header class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
+  <div class="max-w-screen-xl mx-auto px-5 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-sm">
+        <i class="fa-solid fa-bolt text-yellow-300 text-sm"></i>
+      </div>
+      <div>
+        <div class="text-sm font-bold text-gray-900 leading-tight">NPCI A2A Platform</div>
+        <div class="text-xs text-gray-400 leading-tight" id="header-subtitle">Phase 2 · AI-Powered Change Management</div>
+      </div>
+    </div>
+    <nav class="hidden md:flex items-center gap-1">
+      <a href="/" class="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+        <i class="fa-solid fa-mobile-screen text-xs"></i> Phase 1
+      </a>
+      <a href="/phase2" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-50 text-purple-700 flex items-center gap-1.5">
+        <i class="fa-solid fa-bolt text-xs"></i> Phase 2
+      </a>
+      <a href="/agents/dashboard" class="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+        <i class="fa-solid fa-sliders text-xs"></i> Agents
+      </a>
+      <a href="/inspector" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+        <i class="fa-solid fa-magnifying-glass-chart text-xs"></i> Inspector
+      </a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Stage Progress Bar ── -->
+<div class="bg-white border-b border-gray-100">
+  <div class="max-w-screen-xl mx-auto px-5 py-2.5">
+    <div class="flex items-center gap-1 overflow-x-auto" id="stage-bar">
+      <!-- Dynamically rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Dark Content ── -->
+<div class="max-w-screen-xl mx-auto px-5 py-5">
+  <div class="dark-wrap rounded-2xl p-5 md:p-7 min-h-[calc(100vh-160px)]">
+    <div class="max-w-7xl mx-auto">
+      <main class="relative min-h-[820px]">
+
+        <!-- ══════════════════════════════════════════════════════════
+             CHANGE MANAGEMENT VIEWS (view-cm-*)
+             ══════════════════════════════════════════════════════════ -->
+
+        <!-- CM: VIEW 1 — PROMPT -->
+        <div id="view-cm-prompt" class="fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1">
+            <div class="bg-slate-900/50 rounded-[22px] p-8 md:p-12">
+              <div class="max-w-3xl mx-auto text-center space-y-8">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  <span class="w-2 h-2 rounded-full bg-blue-400 pulse-glow"></span>
+                  <span class="text-xs font-semibold uppercase tracking-wider">Ready for Input</span>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white leading-tight">
+                  What would you like to <br>
+                  <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">change today?</span>
+                </h2>
+                <div class="relative group text-left">
+                  <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-500 blur"></div>
+                  <textarea id="pm-prompt" rows="4" class="relative w-full bg-slate-950 border border-slate-800 rounded-xl p-5 text-slate-200 placeholder-slate-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-base leading-relaxed" placeholder="Describe the spec change (e.g., 'Add a RiskScore tag to the ReqPay schema…')"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-left">
+                  <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Flow Mode</label>
+                    <div class="flex gap-2">
+                      <select id="flow-mode" onchange="onModeChange()" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-indigo-400 focus:outline-none">
+                        <option value="change-management">Change Management</option>
+                        <option value="new-feature-build">New Feature Build (Workflow 2)</option>
+                      </select>
+                      <button onclick="loadNFBDemo()" class="px-2 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold transition-colors">Demo</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Objective (Workflow 2)</label>
+                    <input id="wf2-objective" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-indigo-400 focus:outline-none" placeholder="Launch goal, business outcome">
+                  </div>
+                  <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Target Users (Workflow 2)</label>
+                    <input id="wf2-users" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-indigo-400 focus:outline-none" placeholder="Users, issuers, PSPs, merchants">
+                  </div>
+                </div>
+                <button onclick="analyzePrompt()" class="btn-primary px-10 py-4 rounded-xl font-bold text-base tracking-wide uppercase shadow-lg shadow-indigo-500/30 inline-flex items-center gap-3">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze & Generate Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CM: VIEW 2 — PLAN -->
+        <div id="view-cm-plan" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1 border-l-4 border-yellow-500">
+            <div class="bg-slate-900/50 rounded-[22px] p-7 h-full flex flex-col">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 border border-yellow-500/30">
+                    <i class="fa-solid fa-lightbulb text-lg"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-xl font-bold text-white">Reasoning Agent Plan</h2>
+                    <div id="plan-version-badge" class="text-xs mono text-yellow-400/90 mt-0.5">Version shown after analysis</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="toggleEditMode()" id="edit-plan-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-edit"></i> Edit Plan
+                  </button>
+                  <span class="text-xs text-slate-400">Review & edit before approving</span>
+                </div>
+              </div>
+              <div class="flex gap-4 mb-4">
+                <div class="w-28">
+                  <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5 block">Version</label>
+                  <input id="plan-version" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-yellow-300 mono text-xs font-bold focus:border-yellow-400 focus:outline-none" placeholder="e.g. 1.5">
+                </div>
+                <div class="flex-1">
+                  <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5 block">Description</label>
+                  <input id="plan-description" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white text-xs focus:border-indigo-400 focus:outline-none" readonly>
+                </div>
+                <div class="w-48">
+                  <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5 block flex items-center gap-1">
+                    <i class="fa-solid fa-history text-slate-500 text-xs"></i> Base on Version
+                  </label>
+                  <select id="plan-base-version" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-indigo-400 focus:outline-none">
+                    <option value="">Latest (current live)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5 block">Impact Analysis</label>
+                <div id="plan-impact" class="glass-panel rounded-lg p-3 text-xs text-slate-300 min-h-[50px]"></div>
+              </div>
+              <div class="flex-1 flex flex-col min-h-0 mb-4">
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">Plan Steps</label>
+                  <span id="edit-indicator" class="text-xs text-slate-500 hidden"><i class="fa-solid fa-pencil"></i> Edit Mode</span>
+                </div>
+                <div class="flex-1 glass-panel rounded-xl p-5 mono text-xs text-yellow-100 overflow-auto scr shadow-inner">
+                  <textarea id="plan-editable" class="w-full h-full bg-transparent border-none outline-none resize-none text-yellow-100 mono" readonly style="display:none;"></textarea>
+                  <pre id="plan-content" class="whitespace-pre-wrap m-0">Analyzing prompt…</pre>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5 block">Verification Payload (Test XML)</label>
+                <textarea id="plan-verification" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-green-400 mono text-xs min-h-[80px] focus:outline-none" readonly></textarea>
+              </div>
+              <div class="flex gap-3 justify-end">
+                <button onclick="goToView('cm','prompt')" class="px-5 py-2.5 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm">Back</button>
+                <button onclick="rejectPlan()" class="btn-danger px-7 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-xmark"></i> Reject</button>
+                <button onclick="savePlanEdits()" id="save-plan-btn" class="hidden px-7 py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"><i class="fa-solid fa-save"></i> Save</button>
+                <button onclick="approvePlan()" class="btn-success px-7 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-check"></i> Approve & Execute</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CM: VIEW 3 — EXECUTION -->
+        <div id="view-cm-execution" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1 border-l-4 border-blue-500 h-full">
+            <div class="bg-slate-900/50 rounded-[22px] p-7 h-full flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30"><i class="fa-solid fa-gears text-lg"></i></div>
+                  <h2 class="text-xl font-bold text-white">System Execution</h2>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-semibold bg-slate-800 px-3 py-1 rounded-full text-green-400 border border-green-500/20">
+                  <span class="w-2 h-2 rounded-full bg-green-500 pulse-glow"></span> LIVE UPDATES
+                </div>
+              </div>
+              <!-- System block -->
+              <div id="system-status-block" class="glass-panel rounded-xl p-4 mb-5 border border-slate-700/60">
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div id="system-status-icon" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                      <i class="fa-solid fa-clock text-slate-400 text-sm"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2 mb-0.5">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">SYSTEM</span>
+                        <span id="system-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded border text-slate-400 border-slate-600 bg-slate-700/50">QUEUED</span>
+                      </div>
+                      <p id="system-status-msg" class="text-xs text-slate-300 truncate">Waiting for plan approval…</p>
+                    </div>
+                  </div>
+                  <div class="hidden md:flex items-center gap-1 flex-shrink-0">
+                    <div id="phase-backup" class="flex items-center"><span class="phase-dot w-2 h-2 rounded-full bg-slate-600"></span><span class="text-[10px] text-slate-500 ml-1">Backup</span></div>
+                    <div class="w-4 h-px bg-slate-700"></div>
+                    <div id="phase-agents" class="flex items-center"><span class="phase-dot w-2 h-2 rounded-full bg-slate-600"></span><span class="text-[10px] text-slate-500 ml-1">Agents</span></div>
+                    <div class="w-4 h-px bg-slate-700"></div>
+                    <div id="phase-testing" class="flex items-center"><span class="phase-dot w-2 h-2 rounded-full bg-slate-600"></span><span class="text-[10px] text-slate-500 ml-1">Testing</span></div>
+                    <div class="w-4 h-px bg-slate-700"></div>
+                    <div id="phase-done" class="flex items-center"><span class="phase-dot w-2 h-2 rounded-full bg-slate-600"></span><span class="text-[10px] text-slate-500 ml-1">Done</span></div>
+                  </div>
+                </div>
+              </div>
+              <div id="agent-statuses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 max-h-[220px] overflow-y-auto scr"></div>
+              <div class="flex-1 min-h-0 glass-panel rounded-xl p-4 flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-terminal"></i> Live Logs</div>
+                  <button onclick="document.getElementById('exec-logs').innerHTML=''" class="text-[10px] text-slate-600 hover:text-slate-400 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700">Clear</button>
+                </div>
+                <div id="exec-logs" class="flex-1 min-h-0 overflow-y-auto scr mono text-xs text-slate-400 space-y-0.5 pr-1">
+                  <div class="text-slate-600 italic">Waiting for execution…</div>
+                </div>
+              </div>
+              <div class="mt-5 flex justify-end">
+                <button onclick="goToView('cm','test')" class="btn-primary px-7 py-3 rounded-xl font-bold text-sm flex items-center gap-2">
+                  Proceed to Verification <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CM: VIEW 4 — TEST -->
+        <div id="view-cm-test" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1 border-l-4 border-green-500 h-full">
+            <div class="bg-slate-900/50 rounded-[22px] p-7 h-full flex flex-col">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 border border-green-500/30"><i class="fa-solid fa-check-double text-lg"></i></div>
+                  <h2 class="text-xl font-bold text-white">PM Testing & Verification</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="runTestSuite()" id="run-suite-btn" class="btn-primary px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-vial"></i> Run Test Suite</button>
+                  <a href="/inspector" target="_blank" class="btn-primary px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart"></i> Inspector</a>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0 overflow-hidden">
+                <div class="lg:col-span-1 flex flex-col gap-3 min-h-0 overflow-hidden">
+                  <div class="glass-panel rounded-xl p-3 flex-shrink-0">
+                    <label class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+                      <i class="fa-solid fa-list"></i> Test Scenarios
+                      <span id="live-limit-badge" class="ml-auto px-2 py-0.5 rounded-full bg-indigo-900/60 text-indigo-300 text-[10px] font-mono cursor-help">Limit: —</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-1.5">
+                      <button onclick="loadTestScenario('basic')" class="text-left px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition flex items-center gap-1.5"><i class="fa-solid fa-check-circle text-green-400"></i> Basic</button>
+                      <button onclick="loadTestScenario('highvalue')" class="text-left px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition flex items-center gap-1.5"><i class="fa-solid fa-dollar-sign text-yellow-400"></i> High Value</button>
+                      <button onclick="loadTestScenario('risk')" class="text-left px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-red-400"></i> Risk Score</button>
+                      <button onclick="loadTestScenario('custom')" class="text-left px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition flex items-center gap-1.5"><i class="fa-solid fa-code text-blue-400"></i> Custom</button>
+                    </div>
+                  </div>
+                  <div class="flex-1 min-h-0 flex flex-col glass-panel rounded-xl p-3">
+                    <label class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex-shrink-0"><i class="fa-solid fa-code"></i> Request XML</label>
+                    <textarea id="txn-xml" class="flex-1 min-h-0 w-full bg-slate-950 text-green-400 mono text-xs p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-green-500/50 resize-none shadow-inner scr" spellcheck="false"></textarea>
+                    <button onclick="runTestTransaction()" class="mt-2 btn-primary px-4 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-2 flex-shrink-0"><i class="fa-solid fa-play"></i> Run Single Test</button>
+                  </div>
+                </div>
+                <div class="lg:col-span-1 flex flex-col min-h-0">
+                  <label class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex-shrink-0"><i class="fa-solid fa-code-branch"></i> Live Transaction Flow</label>
+                  <div id="flow-container" class="flex-1 min-h-0 w-full bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col relative">
+                    <div id="flow-timeline" class="h-12 border-b border-slate-800 flex items-center px-3 overflow-x-auto gap-3 scr bg-slate-900/50 flex-shrink-0">
+                      <div class="text-xs text-slate-500 italic">Waiting for transaction…</div>
+                    </div>
+                    <div class="flex-1 min-h-0 overflow-auto p-3 scr relative">
+                      <div id="flow-placeholder" class="absolute inset-0 flex items-center justify-center text-slate-600 italic text-xs">Select a step to view XML</div>
+                      <pre id="flow-xml-viewer" class="hidden mono text-xs text-blue-300 whitespace-pre-wrap leading-relaxed"></pre>
+                    </div>
+                    <div id="txn-result-footer" class="p-3 bg-slate-900/80 border-t border-slate-800 text-xs mono hidden flex-shrink-0">
+                      <span class="text-slate-400">Final Result:</span> <span id="txn-final-status" class="font-bold ml-2"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="lg:col-span-1 flex flex-col gap-3 min-h-0 overflow-hidden">
+                  <div class="glass-panel rounded-xl p-3 flex-1 min-h-0 flex flex-col">
+                    <label class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex-shrink-0"><i class="fa-solid fa-chart-line"></i> Test Results <span id="test-summary" class="ml-auto text-[10px] text-slate-500"></span></label>
+                    <div id="test-results" class="flex-1 min-h-0 overflow-y-auto scr space-y-2 pr-0.5">
+                      <div class="text-xs text-slate-500 italic text-center py-8">No tests run yet</div>
+                    </div>
+                  </div>
+                  <div class="glass-panel rounded-xl p-3 flex-shrink-0">
+                    <label class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2"><i class="fa-solid fa-comment-dots"></i> PM Feedback</label>
+                    <textarea id="pm-feedback" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-300 resize-none focus:outline-none focus:border-indigo-500/50" placeholder="Feedback notes…"></textarea>
+                    <div class="flex gap-2 mt-2">
+                      <button onclick="submitFeedback('pass')" class="flex-1 px-2 py-1.5 rounded-lg font-bold text-xs bg-green-600 hover:bg-green-700 text-white"><i class="fa-solid fa-check mr-1"></i>Pass</button>
+                      <button onclick="submitFeedback('fail')" class="flex-1 px-2 py-1.5 rounded-lg font-bold text-xs bg-red-600 hover:bg-red-700 text-white"><i class="fa-solid fa-xmark mr-1"></i>Fail</button>
+                      <button onclick="submitFeedback('needs-work')" class="flex-1 px-2 py-1.5 rounded-lg font-bold text-xs bg-yellow-600 hover:bg-yellow-700 text-white"><i class="fa-solid fa-wrench mr-1"></i>Revise</button>
+                    </div>
+                  </div>
+                  <button onclick="goToView('cm','deploy')" class="w-full btn-primary px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 flex-shrink-0"><i class="fa-solid fa-rocket"></i> Proceed to Deploy →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CM: VIEW 5 — DEPLOY -->
+        <div id="view-cm-deploy" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1 border-l-4 border-rose-500 h-full">
+            <div class="bg-slate-900/50 rounded-[22px] p-6 h-full flex flex-col gap-4">
+              <div class="flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400 border border-rose-500/30"><i class="fa-solid fa-rocket text-lg"></i></div>
+                  <div>
+                    <h2 class="text-xl font-bold text-white">Deploy & Version Control</h2>
+                    <p class="text-xs text-slate-400">Restore a snapshot and hot-deploy to Phase 1</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="fetch('/agents/reload',{method:'POST'}).then(r=>r.json()).then(d=>{document.getElementById('deploy-status').innerHTML='<span class=\'text-purple-300\'>✅ Hot-reloaded — P2P: ₹'+(d.P2P_LIMIT/100000).toFixed(1)+'L</span>'})" class="px-4 py-2 rounded-lg font-bold text-xs bg-purple-900/60 hover:bg-purple-800/60 text-purple-300 border border-purple-700/50 flex items-center gap-1.5 transition"><i class="fa-solid fa-rotate-right"></i> Hot Reload</button>
+                  <a href="/" target="_blank" class="btn-success px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Phase 1</a>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-shrink-0">
+                <div class="glass-panel rounded-xl p-4">
+                  <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-rose-400"></i> Deploy a Version</h3>
+                  <select id="deploy-version" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-xs text-slate-200 focus:border-rose-400 focus:outline-none mb-2"><option value="">Loading…</option></select>
+                  <button onclick="deploySelectedVersion()" class="w-full py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-2 mb-2" style="background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;cursor:pointer;"><i class="fa-solid fa-rocket"></i> Deploy Selected</button>
+                  <div id="deploy-status" class="text-xs text-slate-400 px-3 py-2 bg-slate-950 rounded-lg border border-slate-800 min-h-[32px]">Select a version and click Deploy.</div>
+                </div>
+                <div class="glass-panel rounded-xl p-4">
+                  <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2"><i class="fa-solid fa-code-branch text-green-400"></i> Git Repository <span id="git-branch" class="ml-auto mono text-slate-500 text-[10px]"></span></h3>
+                  <div id="git-status" class="text-xs text-slate-400 mb-3 px-3 py-2 bg-slate-950 rounded-lg border border-slate-800 min-h-[32px]">Checking…</div>
+                  <button onclick="createGitCommit()" class="w-full px-3 py-2 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 flex items-center justify-center gap-2 transition"><i class="fa-solid fa-code-branch text-green-400"></i> Create Commit</button>
+                </div>
+              </div>
+              <div class="glass-panel rounded-xl p-4 flex-1 min-h-0 flex flex-col">
+                <div class="flex items-center justify-between mb-2 flex-shrink-0">
+                  <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-history text-indigo-400"></i> Version History <span id="version-count-badge" class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px]"></span></h3>
+                  <button onclick="loadDeployVersions()" class="text-[10px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 flex items-center gap-1 transition"><i class="fa-solid fa-rotate text-xs"></i> Refresh</button>
+                </div>
+                <div class="grid grid-cols-12 gap-2 px-3 pb-2 border-b border-slate-700/50 flex-shrink-0">
+                  <div class="col-span-1 text-[10px] font-bold text-slate-500 uppercase">Ver</div>
+                  <div class="col-span-5 text-[10px] font-bold text-slate-500 uppercase">Description</div>
+                  <div class="col-span-3 text-[10px] font-bold text-slate-500 uppercase">Date & Time</div>
+                  <div class="col-span-2 text-[10px] font-bold text-slate-500 uppercase">Status</div>
+                  <div class="col-span-1 text-[10px] font-bold text-slate-500 uppercase">Act</div>
+                </div>
+                <div id="version-history-list" class="flex-1 min-h-0 overflow-y-auto scr mt-1">
+                  <div class="text-xs text-slate-500 italic text-center py-8">Loading versions…</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             NEW FEATURE BUILD VIEWS (view-nfb-*)
+             ══════════════════════════════════════════════════════════ -->
+
+        <!-- NFB: VIEW 1 — INPUT -->
+        <div id="view-nfb-input" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1">
+            <div class="bg-slate-900/50 rounded-[22px] p-8 md:p-12">
+              <div class="max-w-3xl mx-auto space-y-8">
+                <div class="text-center">
+                  <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-4">
+                    <i class="fa-solid fa-bolt text-xs"></i>
+                    <span class="text-xs font-semibold uppercase tracking-wider">New Feature Build — Product Canvas</span>
+                  </div>
+                  <h2 class="text-3xl md:text-4xl font-bold text-white leading-tight mb-2">
+                    Build a New UPI Feature
+                    <span class="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 text-2xl mt-1">with AI-powered Product Canvas</span>
+                  </h2>
+                  <p class="text-slate-400 text-sm">Describe your feature to generate deep research, product canvas, prototype brief, and document pack.</p>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                  <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">Feature Name / Description *</label>
+                    <textarea id="nfb-feature-name" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-200 placeholder-slate-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm" placeholder="e.g. UPI Delegate Pay for Schools — single block, multiple debits for tuition fees"></textarea>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">Feature Objective</label>
+                      <input id="nfb-objective" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-slate-200 placeholder-slate-600 focus:border-purple-400 outline-none text-sm" placeholder="Launch goal, business outcome">
+                    </div>
+                    <div>
+                      <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">Target Users / Ecosystem</label>
+                      <input id="nfb-users" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-slate-200 placeholder-slate-600 focus:border-purple-400 outline-none text-sm" placeholder="UPI users, issuers, PSPs, merchants">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">Maker Notes (optional)</label>
+                    <input id="nfb-maker-notes" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-slate-200 placeholder-slate-600 focus:border-purple-400 outline-none text-sm" placeholder="Any specific constraints, priorities, or regulatory context">
+                  </div>
+                </div>
+                <div class="flex items-center justify-center gap-4">
+                  <button onclick="loadNFBDemo()" class="px-6 py-3 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Load Demo
+                  </button>
+                  <button onclick="startNFB()" class="btn-primary px-10 py-4 rounded-xl font-bold text-base uppercase shadow-lg shadow-purple-500/30 flex items-center gap-3">
+                    <i class="fa-solid fa-microchip"></i> Generate Canvas
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NFB: VIEW 2 — CANVAS -->
+        <div id="view-nfb-canvas" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1 border-l-4 border-purple-500 h-full">
+            <div class="bg-slate-900/50 rounded-[22px] p-7 h-full flex flex-col">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30"><i class="fa-solid fa-brain text-lg"></i></div>
+                  <div>
+                    <h2 class="text-xl font-bold text-white">AI Thinking & Product Canvas</h2>
+                    <div id="canvas-feature-subtitle" class="text-xs text-purple-300/80 mt-0.5">Generating…</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div id="canvas-status-pill" class="text-xs px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 border border-yellow-500/30 flex items-center gap-2">
+                    <i class="fa-solid fa-spinner spin text-xs"></i> Thinking…
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-5 gap-4 overflow-hidden">
+                <!-- Left: Thinking steps -->
+                <div class="lg:col-span-2 flex flex-col min-h-0">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex-shrink-0">
+                    <i class="fa-solid fa-lightbulb text-yellow-400 mr-1"></i> AI Reasoning Steps
+                  </label>
+                  <div id="thinking-steps" class="flex-1 min-h-0 overflow-y-auto scr space-y-2"></div>
+                </div>
+                <!-- Right: Canvas tiles -->
+                <div class="lg:col-span-3 flex flex-col min-h-0">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex-shrink-0">
+                    <i class="fa-solid fa-table-cells-large text-purple-400 mr-1"></i> Product Build Canvas
+                  </label>
+                  <div id="canvas-tiles" class="flex-1 min-h-0 overflow-y-auto scr space-y-2">
+                    <div class="text-slate-500 italic text-xs text-center py-8">Canvas sections will appear after generation…</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-5 flex gap-3 justify-end flex-shrink-0">
+                <button onclick="goToView('nfb','input')" class="px-5 py-2.5 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm">Back</button>
+                <button onclick="approveNFBCanvas()" id="btn-approve-canvas" class="btn-success px-7 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2" disabled>
+                  <i class="fa-solid fa-check"></i> Approve Canvas
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NFB: VIEW 3 — PROTOTYPE -->
+        <div id="view-nfb-prototype" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1 border-l-4 border-cyan-500 h-full">
+            <div class="bg-slate-900/50 rounded-[22px] p-7 h-full flex flex-col">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 border border-cyan-500/30"><i class="fa-solid fa-mobile-screen-button text-lg"></i></div>
+                  <div>
+                    <h2 class="text-xl font-bold text-white">Prototype Brief</h2>
+                    <div id="proto-feature-name" class="text-xs text-cyan-300/80 mt-0.5">—</div>
+                  </div>
+                </div>
+                <div id="proto-status-pill" class="text-xs px-3 py-1.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-2">
+                  <i class="fa-solid fa-circle text-xs"></i> Canvas Approved
+                </div>
+              </div>
+
+              <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-5 overflow-hidden">
+                <!-- Left: Prototype details -->
+                <div class="flex flex-col min-h-0">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex-shrink-0"><i class="fa-solid fa-palette text-cyan-400 mr-1"></i> Prototype Specification</label>
+                  <div id="proto-spec-box" class="flex-1 min-h-0 glass-panel rounded-xl p-4 overflow-y-auto scr space-y-3"></div>
+                </div>
+                <!-- Right: Build + Deep Research -->
+                <div class="flex flex-col gap-4 min-h-0">
+                  <div class="glass-panel rounded-xl p-4 flex-shrink-0">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"><i class="fa-solid fa-hammer text-yellow-400 mr-1"></i> Build Prototype</h3>
+                    <div class="mb-3">
+                      <label class="text-xs text-slate-500 mb-1 block">Prototype URL (optional — Lovable, Figma, etc.)</label>
+                      <input id="proto-url-input" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-cyan-400 outline-none" placeholder="https://lovable.dev/… (leave blank to auto-generate)">
+                    </div>
+                    <button onclick="buildPrototype()" class="btn-cyan w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                      <i class="fa-solid fa-hammer"></i> Build / Confirm Prototype
+                    </button>
+                    <div id="proto-url-result" class="mt-2 text-xs text-cyan-300 hidden"></div>
+                  </div>
+                  <div class="flex-1 min-h-0 glass-panel rounded-xl p-4 overflow-y-auto scr">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"><i class="fa-solid fa-microscope text-indigo-400 mr-1"></i> Deep Research Summary</h3>
+                    <div id="proto-deep-research" class="space-y-2 text-xs text-slate-300 leading-relaxed"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-5 flex gap-3 justify-end flex-shrink-0">
+                <button onclick="goToView('nfb','canvas')" class="px-5 py-2.5 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm">Back</button>
+                <button onclick="goToView('nfb','docs')" id="btn-proceed-docs" class="btn-primary px-7 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-arrow-right"></i> Proceed to Documents
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NFB: VIEW 4 — DOCUMENTS -->
+        <div id="view-nfb-docs" class="hidden fade-in absolute inset-0">
+          <div class="glass rounded-3xl p-1 border-l-4 border-indigo-500 h-full">
+            <div class="bg-slate-900/50 rounded-[22px] p-7 h-full flex flex-col">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30"><i class="fa-solid fa-file-lines text-lg"></i></div>
+                  <div>
+                    <h2 class="text-xl font-bold text-white">Document Pack</h2>
+                    <div id="docs-feature-name" class="text-xs text-indigo-300/80 mt-0.5">—</div>
+                  </div>
+                </div>
+                <button onclick="loadNFBDocs()" class="px-4 py-2 rounded-lg font-bold text-xs bg-indigo-900/60 hover:bg-indigo-800/60 text-indigo-300 border border-indigo-700/50 flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-rotate"></i> Refresh Docs
+                </button>
+              </div>
+              <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                <div class="flex flex-col min-h-0">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex-shrink-0"><i class="fa-solid fa-folder-open text-indigo-400 mr-1"></i> Generated Documents</label>
+                  <div id="docs-list" class="flex-1 min-h-0 overflow-y-auto scr space-y-3">
+                    <div class="text-slate-500 italic text-xs text-center py-8">Documents will appear after canvas approval…</div>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-4 min-h-0">
+                  <div class="glass-panel rounded-xl p-4 flex-1 min-h-0 flex flex-col">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex-shrink-0"><i class="fa-solid fa-eye text-slate-300 mr-1"></i> Document Preview</label>
+                    <iframe id="doc-preview-frame" class="flex-1 min-h-0 bg-white rounded-lg border border-slate-700 hidden" style="min-height:250px;"></iframe>
+                    <div id="doc-preview-placeholder" class="flex-1 min-h-0 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-center" style="min-height:250px;">
+                      <p class="text-slate-500 italic text-xs">Click <strong>Preview</strong> on a document</p>
+                    </div>
+                  </div>
+                  <div class="glass-panel rounded-xl p-4 flex-shrink-0">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block"><i class="fa-solid fa-circle-nodes text-cyan-400 mr-1"></i> Comms & FAQs</label>
+                    <div id="docs-comms-box" class="text-xs text-slate-400 leading-relaxed space-y-1"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-5 flex gap-3 justify-end flex-shrink-0">
+                <button onclick="goToView('nfb','prototype')" class="px-5 py-2.5 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm">Back</button>
+                <button onclick="proceedNFBExecution()" class="btn-success px-7 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-rocket"></i> Proceed to Execution
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NFB: VIEW 5 — EXECUTION (reuses CM execution views) -->
+        <!-- Note: clicking "Proceed to Execution" in NFB switches to CM execution view with nfb plan loaded -->
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── Global State ─────────────────────────────────────────────────────────
+  let currentMode = 'change-management'; // 'change-management' | 'new-feature-build'
+  let currentView = 'prompt';
+  let currentPlan = null;
+  let flowSteps = [];
+  let testResults = [];
+  let isEditMode = false;
+  let _liveLimits = null;
+
+  let nfbState = {
+    sessionId: null,
+    featureName: '',
+    payload: null,
+    productCanvas: {},
+    canvasApproved: false,
+    prototypeBuilt: false,
+    protoUrl: ''
+  };
+
+  // ─── Stage Definitions ─────────────────────────────────────────────────────
+  const CM_STAGES = [
+    {id:'prompt',   icon:'fa-pen-to-square',        label:'Prompt'},
+    {id:'plan',     icon:'fa-compass-drafting',      label:'Plan'},
+    {id:'execution',icon:'fa-microchip',             label:'Execute'},
+    {id:'test',     icon:'fa-flask',                 label:'Verify'},
+    {id:'deploy',   icon:'fa-rocket',                label:'Deploy'},
+  ];
+  const NFB_STAGES = [
+    {id:'input',    icon:'fa-pen-to-square',         label:'Input'},
+    {id:'canvas',   icon:'fa-brain',                 label:'Canvas'},
+    {id:'prototype',icon:'fa-mobile-screen-button',  label:'Prototype'},
+    {id:'docs',     icon:'fa-file-lines',            label:'Documents'},
+    {id:'execution',icon:'fa-rocket',                label:'Execution'},
+  ];
+
+  function renderStageBar(completedIds) {
+    const stages = currentMode === 'new-feature-build' ? NFB_STAGES : CM_STAGES;
+    const bar = document.getElementById('stage-bar');
+    const curId = currentView;
+    bar.innerHTML = '';
+    stages.forEach((s, i) => {
+      const isActive = s.id === curId;
+      const isDone = completedIds && completedIds.has(s.id);
+      const btn = document.createElement('button');
+      btn.className = `stage-btn flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border flex-shrink-0${isActive?' active-stage':isDone?' completed-stage':''}`;
+      btn.innerHTML = `<span class="w-4 h-4 rounded-full bg-current/20 flex items-center justify-center font-bold text-[10px]">${i+1}</span><i class="fa-solid ${s.icon}"></i> ${s.label}`;
+      btn.onclick = () => goToView(currentMode==='new-feature-build'?'nfb':'cm', s.id);
+      bar.appendChild(btn);
+      if (i < stages.length-1) {
+        const div = document.createElement('div');
+        div.className = 'w-5 h-px bg-gray-200 flex-shrink-0';
+        bar.appendChild(div);
+      }
+    });
+  }
+
+  // ─── Navigation ───────────────────────────────────────────────────────────
+  function goToView(modePrefix, viewId) {
+    // Hide all views
+    document.querySelectorAll('[id^="view-"]').forEach(el => {
+      el.classList.add('hidden');
+      el.classList.remove('fade-in');
+    });
+    currentView = viewId;
+    const prefix = modePrefix === 'nfb' ? 'nfb' : 'cm';
+    const target = document.getElementById(`view-${prefix}-${viewId}`) || document.getElementById(`view-cm-${viewId}`);
+    if (!target) return;
+    target.classList.remove('hidden');
+    void target.offsetWidth;
+    target.classList.add('fade-in');
+    renderStageBar();
+    if (viewId === 'deploy') { loadDeployVersions(); refreshGitInfo(); }
+    if (viewId === 'test')   { refreshLimits(); }
+    if (viewId === 'docs')   { loadNFBDocs(); }
+  }
+
+  function onModeChange() {
+    const mode = document.getElementById('flow-mode').value;
+    currentMode = mode;
+    const sub = document.getElementById('header-subtitle');
+    if (mode === 'new-feature-build') {
+      sub.textContent = 'Phase 2 · New Feature Build — Product Canvas';
+      renderStageBar();
+    } else {
+      sub.textContent = 'Phase 2 · AI-Powered Change Management';
+      renderStageBar();
+    }
+  }
+
+  // ─── SSE ─────────────────────────────────────────────────────────────────
+  const evtSource = new EventSource('/stream');
+  evtSource.addEventListener('agent_status', e => {
+    const data = JSON.parse(e.data);
+    updateAgentStatus(data.name, data.status, data.msg, data);
+    addLog(`[${data.name}] ${data.status}: ${data.msg}`);
+    if (data.name==='SYSTEM' && (data.status==='COMPLETED'||data.status==='ERROR')) {
+      refreshLimits(); loadDeployVersions();
+    }
+  });
+  evtSource.addEventListener('spec_change', e => {
+    const data = JSON.parse(e.data);
+    addLog(`[SYSTEM] Spec Change Broadcast: v${data.version}`);
+    if (data.verification_payload) {
+      document.getElementById('txn-xml').value = data.verification_payload;
+    }
+  });
+  evtSource.addEventListener('xml_log', e => {
+    const data = JSON.parse(e.data);
+    handleXmlLog(data);
+  });
+
+  // ─── CM: Prompt → Plan ────────────────────────────────────────────────────
+  async function analyzePrompt() {
+    const prompt = document.getElementById('pm-prompt').value.trim();
+    if (!prompt) return alert('Please enter a prompt.');
+    const mode = document.getElementById('flow-mode').value;
+    currentMode = mode;
+    renderStageBar();
+
+    if (mode === 'new-feature-build') {
+      // Sync NFB fields from prompt panel
+      document.getElementById('nfb-feature-name').value = prompt;
+      document.getElementById('nfb-objective').value = document.getElementById('wf2-objective').value;
+      document.getElementById('nfb-users').value = document.getElementById('wf2-users').value;
+      goToView('nfb', 'input');
+      return;
+    }
+
+    goToView('cm', 'plan');
+    document.getElementById('plan-version').value = '—';
+    document.getElementById('plan-version-badge').textContent = 'v — (analyzing…)';
+    document.getElementById('plan-content').innerHTML = '<span class="text-yellow-400" style="animation:pulse-glow 2s ease-in-out infinite">Analyzing prompt with Reasoning Agent…</span>';
+    document.getElementById('plan-description').value = '';
+    document.getElementById('plan-impact').innerHTML = '<span class="text-slate-500 text-xs">Analyzing…</span>';
+    try {
+      const res = await fetch('/agents/propose-change', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({prompt})
+      });
+      const plan = await res.json();
+      currentPlan = plan;
+      displayPlan(plan);
+      document.getElementById('plan-version-badge').textContent = 'v '+(plan.version||'1.x');
+    } catch(e) {
+      document.getElementById('plan-content').innerText = 'Error: '+e.message;
+      document.getElementById('plan-version-badge').textContent = 'Version — (error)';
+    }
+  }
+
+  function displayPlan(plan) {
+    const ver = plan.version||'1.x';
+    document.getElementById('plan-version').value = ver;
+    document.getElementById('plan-version-badge').textContent = 'v '+ver;
+    document.getElementById('plan-description').value = plan.description||'';
+    const impactDiv = document.getElementById('plan-impact');
+    if (plan.impact_analysis && typeof plan.impact_analysis==='object' && !Array.isArray(plan.impact_analysis)) {
+      const ia = plan.impact_analysis;
+      impactDiv.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+        <div class="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20"><label class="text-[10px] text-blue-400 font-bold uppercase block mb-1">Business Value</label><p class="text-xs text-slate-300">${ia.business_value||'N/A'}</p></div>
+        <div class="p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/20"><label class="text-[10px] text-purple-400 font-bold uppercase block mb-1">Compliance</label><p class="text-xs text-slate-300">${ia.compliance_check||'N/A'}</p></div></div>
+        <div class="p-2.5 rounded-lg bg-red-500/10 border border-red-500/20"><label class="text-[10px] text-red-400 font-bold uppercase block mb-1">Risk</label><p class="text-xs text-slate-300">${ia.risk_assessment||'N/A'}</p></div>`;
+    } else if (plan.impact_analysis && Array.isArray(plan.impact_analysis)) {
+      impactDiv.innerHTML = plan.impact_analysis.map(i=>`<div class="flex items-center gap-2 mb-1.5"><i class="fa-solid fa-file-code text-blue-400 text-xs"></i><span class="text-xs">${i}</span></div>`).join('');
+    } else {
+      impactDiv.innerHTML = '<span class="text-slate-500 text-xs">No impact analysis provided.</span>';
+    }
+    const planText = Array.isArray(plan.plan) ? plan.plan.join('\n') : JSON.stringify(plan,null,2);
+    document.getElementById('plan-content').innerText = planText;
+    document.getElementById('plan-editable').value = planText;
+    document.getElementById('plan-verification').value = plan.verification_payload||'';
+    if (plan.verification_payload) document.getElementById('txn-xml').value = plan.verification_payload;
+  }
+
+  function toggleEditMode() {
+    isEditMode = !isEditMode;
+    const pre = document.getElementById('plan-content');
+    const ta  = document.getElementById('plan-editable');
+    const btn = document.getElementById('edit-plan-btn');
+    const sav = document.getElementById('save-plan-btn');
+    const ind = document.getElementById('edit-indicator');
+    if (isEditMode) {
+      pre.style.display='none'; ta.style.display='block'; ta.readOnly=false;
+      btn.innerHTML='<i class="fa-solid fa-times"></i> Cancel'; btn.classList.add('bg-red-600');
+      sav.classList.remove('hidden'); ind.classList.remove('hidden');
+    } else {
+      pre.style.display='block'; ta.style.display='none'; ta.readOnly=true;
+      btn.innerHTML='<i class="fa-solid fa-edit"></i> Edit Plan'; btn.classList.remove('bg-red-600');
+      sav.classList.add('hidden'); ind.classList.add('hidden');
+    }
+  }
+
+  function savePlanEdits() {
+    if (!currentPlan) return;
+    const edited = document.getElementById('plan-editable').value;
+    currentPlan.plan = edited.split('\n').filter(l=>l.trim());
+    currentPlan.version = document.getElementById('plan-version').value;
+    currentPlan.description = document.getElementById('plan-description').value;
+    currentPlan.verification_payload = document.getElementById('plan-verification').value;
+    document.getElementById('plan-content').innerText = edited;
+    toggleEditMode();
+  }
+
+  async function approvePlan() {
+    if (!currentPlan) return;
+    goToView('cm','execution');
+    updateSystemBlock('BACKUP','Creating backup before applying changes…');
+    document.getElementById('agent-statuses').innerHTML = '';
+    document.getElementById('exec-logs').innerHTML = '<div class="text-slate-600 italic">Execution started…</div>';
+    await fetch('/agents/approve-change',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(currentPlan)});
+  }
+
+  function rejectPlan() { goToView('cm','prompt'); currentPlan=null; }
+
+  // ─── NFB Flow ─────────────────────────────────────────────────────────────
+  function loadNFBDemo() {
+    document.getElementById('pm-prompt').value='Build UPI Circle for Subscription Services with UPI Reserve Pay (single block, multiple debits) as a production-ready feature.';
+    document.getElementById('wf2-objective').value='Build a production-ready Workflow 2 showcase for software delegated UPI payments with reserve-plus-multi-debit capability.';
+    document.getElementById('wf2-users').value='Primary users, service providers, issuer banks, UPI apps, and high-frequency merchants.';
+    document.getElementById('nfb-feature-name').value='Build UPI Circle for Subscription Services with UPI Reserve Pay (single block, multiple debits) as a production-ready feature.';
+    document.getElementById('nfb-objective').value='Build a production-ready Workflow 2 showcase for software delegated UPI payments with reserve-plus-multi-debit capability.';
+    document.getElementById('nfb-users').value='Primary users, service providers, issuer banks, UPI apps, and high-frequency merchants.';
+    document.getElementById('flow-mode').value='new-feature-build';
+    currentMode='new-feature-build';
+    renderStageBar();
+  }
+
+  async function startNFB() {
+    const featureName = document.getElementById('nfb-feature-name').value.trim();
+    const objective   = document.getElementById('nfb-objective').value.trim();
+    const targetUsers = document.getElementById('nfb-users').value.trim();
+    const makerNotes  = document.getElementById('nfb-maker-notes').value.trim();
+    if (!featureName) { alert('Enter a feature name / description.'); return; }
+
+    nfbState = { sessionId:null, featureName, payload:null, productCanvas:{}, canvasApproved:false, prototypeBuilt:false, protoUrl:'' };
+    goToView('nfb','canvas');
+    document.getElementById('canvas-feature-subtitle').textContent = featureName.substring(0,60)+(featureName.length>60?'…':'');
+    document.getElementById('canvas-status-pill').innerHTML = '<i class="fa-solid fa-spinner spin text-xs"></i> Calling AI…';
+    document.getElementById('thinking-steps').innerHTML = '';
+    document.getElementById('canvas-tiles').innerHTML = '<div class="text-slate-500 italic text-xs text-center py-8">Generating canvas…</div>';
+    document.getElementById('btn-approve-canvas').disabled = true;
+
+    // Show default thinking steps progressively
+    const defaultSteps = [
+      {l:'Parsing feature requirements',    d:`Identifying scope, users, UPI hooks, and regulatory applicability for "${featureName}".`},
+      {l:'Reading RBI Notification 12032',  d:'Master Direction on Digital Payment Security Controls. §4 MFA mandatory, §6 TLS 1.3+, §12 5-year audit trails.'},
+      {l:'Reading RBI Notification 1888',   d:'Payment Instruments & UPI Interoperability. Full KYC for txns >₹10K, T+1 grievance, interoperability mandate.'},
+      {l:'Reading NPCI OC 228 (UPI Reserve Pay)', d:'Single Block Multiple Debits circular. Block duration limits, mandatory notifications, online-verified merchants only.'},
+      {l:'Mapping ecosystem landscape',     d:'PSPs: PhonePe (48%), GPay (37%), Paytm, CRED. Issuers: SBI (520M accts), HDFC, ICICI. Merchants: Zomato, Uber, Blinkit.'},
+      {l:'Identifying differentiation angle', d:`EXPONENTIAL vs incremental. Addresses 18% cart abandonment and 28s avg checkout time reduction for ${featureName}.`},
+      {l:'Drafting canvas sections 1–5',    d:'Feature, Need, Market View, Scalability, Validation (MVP + pilot + data KPIs).'},
+      {l:'Drafting canvas sections 6–10',   d:'Operating KPIs, Comms (doc + video + FAQ + LLM), Pricing (3-yr view), Risks, Compliance.'},
+      {l:'Compliance cross-check',          d:`Verifying against RBI 12032, 1888, OC 228, IT Act 2000, DPDP Act 2023 for ${featureName}.`},
+    ];
+    let stepIdx = 0;
+    const thinkEl = document.getElementById('thinking-steps');
+    const showNextStep = () => {
+      if (stepIdx < defaultSteps.length) {
+        const s = defaultSteps[stepIdx];
+        const div = document.createElement('div');
+        div.className = 'think-step active';
+        div.innerHTML = `<div class="flex items-start gap-2"><i class="fa-solid fa-spinner spin text-yellow-400 text-xs mt-0.5 flex-shrink-0"></i><div><p class="text-xs font-semibold text-yellow-200">${s.l}</p><p class="text-[10px] text-slate-400 mt-0.5 leading-relaxed">${s.d}</p></div></div>`;
+        // Mark previous as done
+        thinkEl.querySelectorAll('.think-step.active').forEach(el => {
+          el.classList.remove('active');
+          el.classList.add('done');
+          el.querySelector('.fa-spinner')?.classList.remove('fa-spinner','spin');
+          el.querySelector('i')?.classList.add('fa-check');
+          el.querySelector('i')?.classList.remove('text-yellow-400');
+          el.querySelector('i')?.classList.add('text-green-400');
+        });
+        thinkEl.appendChild(div);
+        thinkEl.scrollTop = thinkEl.scrollHeight;
+        stepIdx++;
+      }
+    };
+    const stepInterval = setInterval(showNextStep, 800);
+
+    try {
+      const res = await fetch('/workflow2/generate', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({feature_name:featureName, objective, target_users:targetUsers, maker_notes:makerNotes})
+      });
+      const data = await res.json();
+      clearInterval(stepInterval);
+      if (!res.ok) throw new Error(data.error||'Generation failed');
+
+      nfbState.sessionId = data.session_id;
+      nfbState.payload   = data;
+      nfbState.productCanvas = data.product_canvas||{};
+
+      // Finish remaining thinking steps
+      while (stepIdx < defaultSteps.length) { showNextStep(); }
+      // Mark all as done
+      setTimeout(() => {
+        thinkEl.querySelectorAll('.think-step.active').forEach(el => {
+          el.classList.remove('active'); el.classList.add('done');
+          const i = el.querySelector('i');
+          if (i) { i.className='fa-solid fa-check text-green-400 text-xs mt-0.5 flex-shrink-0'; }
+        });
+        document.getElementById('canvas-status-pill').innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-xs"></i> Canvas Ready';
+        document.getElementById('canvas-status-pill').className = 'text-xs px-3 py-1 rounded-full bg-green-500/15 text-green-300 border border-green-500/30 flex items-center gap-2';
+      }, 600);
+
+      renderNFBCanvasTiles(data.product_canvas||{});
+      document.getElementById('btn-approve-canvas').disabled = false;
+
+      // Pre-fill prototype view
+      document.getElementById('proto-feature-name').textContent = featureName.substring(0,60);
+      renderProtoSpec(data);
+      renderDeepResearch(data.deep_research||{});
+
+    } catch(e) {
+      clearInterval(stepInterval);
+      document.getElementById('canvas-status-pill').innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400 text-xs"></i> Error`;
+      document.getElementById('canvas-tiles').innerHTML = `<div class="text-red-400 text-xs p-4 bg-red-500/10 rounded-xl border border-red-500/20">Generation failed: ${e.message}</div>`;
+    }
+  }
+
+  function renderNFBCanvasTiles(canvas) {
+    const el = document.getElementById('canvas-tiles');
+    const keys = Object.keys(canvas);
+    if (!keys.length) { el.innerHTML='<div class="text-slate-500 italic text-xs text-center py-8">No canvas data.</div>'; return; }
+    const icons = {feature_for_layman:'fa-user',need_and_differentiation:'fa-star',market_view:'fa-chart-line',scalability:'fa-expand-arrows-alt',validation_mvp:'fa-flask',operating_kpis:'fa-gauge',comms_outputs:'fa-bullhorn',pricing_view:'fa-tag',compliance:'fa-shield-halved'};
+    el.innerHTML = keys.map((key,idx)=>{
+      const val = typeof canvas[key]==='string' ? canvas[key] : JSON.stringify(canvas[key],null,2);
+      const icon = icons[key]||'fa-circle';
+      const bodyId = `ctile-${idx}`;
+      return `<div class="canvas-section">
+        <button onclick="document.getElementById('${bodyId}').classList.toggle('hidden')" class="w-full text-left px-3 py-2.5 flex items-center justify-between">
+          <span class="flex items-center gap-2 text-xs font-bold text-slate-200"><i class="fa-solid ${icon} text-purple-400 text-xs"></i>${key.replace(/_/g,' ').toUpperCase()}</span>
+          <i class="fa-solid fa-chevron-down text-slate-500 text-[10px]"></i>
+        </button>
+        <div id="${bodyId}" class="px-3 pb-3">
+          <textarea data-canvas-key="${key}" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-purple-400 outline-none resize-y mono" style="min-height:80px;">${escapeHtml(String(val))}</textarea>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function collectCanvasEdits() {
+    const edited = {};
+    document.querySelectorAll('[data-canvas-key]').forEach(el => {
+      const key = el.getAttribute('data-canvas-key');
+      const raw = el.value.trim();
+      try { edited[key]=JSON.parse(raw); } catch { edited[key]=raw; }
+    });
+    return edited;
+  }
+
+  async function approveNFBCanvas() {
+    if (!nfbState.sessionId) { alert('Generate canvas first.'); return; }
+    const productCanvas = collectCanvasEdits();
+    nfbState.productCanvas = productCanvas;
+    try {
+      const res = await fetch('/workflow2/approve-canvas',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({session_id:nfbState.sessionId,product_canvas:productCanvas})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error||'Approval failed');
+      nfbState.canvasApproved = true;
+      // Mark all canvas sections approved
+      document.querySelectorAll('.canvas-section').forEach(el=>el.classList.add('approved'));
+      goToView('nfb','prototype');
+    } catch(e) { alert('Canvas approval failed: '+e.message); }
+  }
+
+  function renderProtoSpec(data) {
+    const proto = data.prototype||{};
+    const canvas = data.product_canvas||{};
+    const box = document.getElementById('proto-spec-box');
+    box.innerHTML = `
+      <div class="rounded-lg bg-cyan-500/8 border border-cyan-500/20 p-3">
+        <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-wide mb-1">Prototype Name</p>
+        <p class="text-xs text-slate-200">${escapeHtml(proto.name||nfbState.featureName+' Experience Prototype')}</p>
+      </div>
+      <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-3">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Prototype Notes</p>
+        <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(proto.notes||'Provide a Lovable/Figma URL after maker review.')}</p>
+      </div>
+      <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-3">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Key User Journey</p>
+        <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(typeof canvas.feature_for_layman==='string'?canvas.feature_for_layman:'Authorize once and complete future payments with clear user controls.')}</p>
+      </div>
+      <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-3">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Validation MVP</p>
+        <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(typeof canvas.validation_mvp==='string'?canvas.validation_mvp:'Pilot with 2 apps, 2 issuers, 2 merchants; compare conversion and checkout times.')}</p>
+      </div>`;
+    if (proto.url) document.getElementById('proto-url-input').value = proto.url;
+  }
+
+  function renderDeepResearch(dr) {
+    const el = document.getElementById('proto-deep-research');
+    if (!dr||!Object.keys(dr).length) { el.innerHTML='<p class="text-slate-500 italic text-xs">No deep research data.</p>'; return; }
+    const fields = [
+      {k:'feature_summary',l:'Feature Summary',c:'text-blue-300'},
+      {k:'need',l:'Need',c:'text-purple-300'},
+      {k:'market_view',l:'Market View',c:'text-cyan-300'},
+      {k:'scalability',l:'Scalability',c:'text-green-300'},
+      {k:'regulatory_summary',l:'Regulatory',c:'text-yellow-300'},
+    ];
+    el.innerHTML = fields.map(f=>{
+      const val = dr[f.k];
+      if (!val) return '';
+      const text = typeof val==='string'?val:JSON.stringify(val);
+      return `<div class="rounded-lg bg-slate-800/50 border border-slate-700/60 p-3 mb-2">
+        <p class="text-[10px] font-bold ${f.c} uppercase tracking-wide mb-1">${f.l}</p>
+        <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(text)}</p>
+      </div>`;
+    }).join('')+(dr.risks?`<div class="rounded-lg bg-red-500/8 border border-red-500/20 p-3">
+      <p class="text-[10px] font-bold text-red-300 uppercase tracking-wide mb-1">Risks</p>
+      ${(Array.isArray(dr.risks)?dr.risks:[dr.risks]).map(r=>`<p class="text-xs text-slate-300">• ${escapeHtml(r)}</p>`).join('')}
+    </div>`:'');
+  }
+
+  async function buildPrototype() {
+    if (!nfbState.sessionId) { alert('Generate canvas first.'); return; }
+    const protoUrl = document.getElementById('proto-url-input').value.trim();
+    try {
+      const res = await fetch('/workflow2/build-prototype',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({session_id:nfbState.sessionId,prototype_url:protoUrl,prototype_approved:true})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error||'Prototype step failed');
+      nfbState.prototypeBuilt = true;
+      nfbState.protoUrl = data.redirect_url||'';
+      const statusEl = document.getElementById('proto-status-pill');
+      statusEl.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-xs"></i> Prototype Ready';
+      statusEl.className = 'text-xs px-3 py-1.5 rounded-full bg-green-500/15 text-green-300 border border-green-500/30 flex items-center gap-2';
+      const resEl = document.getElementById('proto-url-result');
+      resEl.classList.remove('hidden');
+      resEl.innerHTML = `✅ Prototype set: <a href="${data.redirect_url}" target="_blank" class="underline text-cyan-200">${data.redirect_url}</a>`;
+    } catch(e) {
+      alert('Prototype step failed: '+e.message);
+    }
+  }
+
+  async function loadNFBDocs() {
+    const listEl = document.getElementById('docs-list');
+    const commsEl = document.getElementById('docs-comms-box');
+    document.getElementById('docs-feature-name').textContent = nfbState.featureName.substring(0,60)||'—';
+    if (!nfbState.sessionId) { listEl.innerHTML='<div class="text-slate-500 italic text-xs text-center py-8">Generate and approve canvas first.</div>'; return; }
+    listEl.innerHTML='<div class="text-slate-400 text-xs text-center py-4"><i class="fa-solid fa-spinner spin mr-1"></i>Loading…</div>';
+    try {
+      const res = await fetch(`/workflow2/documents/${nfbState.sessionId}/manifest`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error||'Failed to load docs');
+      const docs = data.documents||[];
+      listEl.innerHTML = docs.map(d=>`
+        <div class="doc-card">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-file-${d.download_ppt_url?'powerpoint':'word'} text-indigo-400 text-sm"></i></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-slate-200 mb-1 leading-snug">${escapeHtml(d.title)}</p>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="previewDoc('${d.preview_url}')" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1">
+                  <i class="fa-solid fa-eye text-[9px]"></i> Preview
+                </button>
+                <a href="${d.download_docx_url}" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 transition flex items-center gap-1" download>
+                  <i class="fa-solid fa-download text-[9px]"></i> DOCX
+                </a>
+                ${d.download_ppt_url ? `
+                <a href="${d.download_ppt_url}" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-rose-600 hover:bg-rose-500 text-white border border-rose-500 transition flex items-center gap-1" download>
+                  <i class="fa-solid fa-file-powerpoint text-[9px]"></i> PPTX
+                </a>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>`).join('');
+    } catch(e) { listEl.innerHTML=`<div class="text-red-400 text-xs p-4 bg-red-500/10 rounded-xl border border-red-500/20">Failed to load docs: ${e.message}</div>`; }
+
+    // Comms section
+    const comms = nfbState.payload?.product_comms||{};
+    if (Object.keys(comms).length) {
+      const faqs = comms.faq_starters||[];
+      const outline = comms.doc_outline||[];
+      commsEl.innerHTML = `
+        ${outline.length?`<div class="mb-3"><p class="text-[10px] font-bold text-indigo-300 uppercase mb-1">Doc Outline</p>${outline.map(o=>`<p class="text-slate-400">• ${escapeHtml(o)}</p>`).join('')}</div>`:''}
+        ${faqs.length?`<div class="mb-3"><p class="text-[10px] font-bold text-cyan-300 uppercase mb-1">FAQ Starters</p>${faqs.map(f=>`<p class="text-slate-400">• ${escapeHtml(f)}</p>`).join('')}</div>`:''}
+        ${comms.circular_draft?`<div><p class="text-[10px] font-bold text-yellow-300 uppercase mb-1">Circular Draft</p><p class="text-slate-400">${escapeHtml(comms.circular_draft.substring(0,200))}…</p></div>`:''}`;
+    }
+  }
+
+  function previewDoc(url) {
+    const frame = document.getElementById('doc-preview-frame');
+    const ph    = document.getElementById('doc-preview-placeholder');
+    frame.src = url;
+    frame.classList.remove('hidden');
+    ph.classList.add('hidden');
+  }
+
+  async function proceedNFBExecution() {
+    if (!nfbState.sessionId) { alert('Complete canvas + docs steps first.'); return; }
+    try {
+      const res = await fetch('/workflow2/advance-execution',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({session_id:nfbState.sessionId})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error||'Cannot advance to execution');
+      currentPlan = data.plan_payload;
+      // Switch to CM execution with NFB plan
+      goToView('cm','execution');
+      updateSystemBlock('BACKUP','Preparing Workflow 2 execution handoff…');
+      document.getElementById('agent-statuses').innerHTML='';
+      document.getElementById('exec-logs').innerHTML='<div class="text-slate-600 italic">NFB Execution started…</div>';
+      await fetch('/agents/approve-change',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(currentPlan)});
+    } catch(e) { alert(e.message); }
+  }
+
+  // ─── Execution Helpers ────────────────────────────────────────────────────
+  function addLog(msg) {
+    const logs = document.getElementById('exec-logs');
+    if (!logs) return;
+    const entry = document.createElement('div');
+    entry.className = 'border-l-2 border-slate-700 pl-2 py-0.5 hover:bg-slate-800/30 transition-colors text-xs';
+    entry.textContent = '> '+msg;
+    logs.appendChild(entry);
+    logs.scrollTop = logs.scrollHeight;
+  }
+
+  function updateSystemBlock(status, msg) {
+    const badge = document.getElementById('system-status-badge');
+    const msgEl = document.getElementById('system-status-msg');
+    const icon  = document.getElementById('system-status-icon');
+    const block = document.getElementById('system-status-block');
+    if (!badge||!msgEl) return;
+    const cfg = {
+      QUEUED:   {badge:'text-slate-400 border-slate-600 bg-slate-700/50',   icon:'fa-clock text-slate-400',            block:'border-slate-700/60',     phase:null},
+      BACKUP:   {badge:'text-amber-400 border-amber-500/30 bg-amber-500/10', icon:'fa-database text-amber-400',         block:'border-amber-500/30',     phase:'backup'},
+      RUNNING:  {badge:'text-yellow-400 border-yellow-500/30 bg-yellow-500/10',icon:'fa-gears text-yellow-400',         block:'border-yellow-500/30',    phase:'agents'},
+      RELOADING:{badge:'text-purple-400 border-purple-500/30 bg-purple-500/10',icon:'fa-rotate text-purple-400',        block:'border-purple-500/30',    phase:'agents'},
+      TESTING:  {badge:'text-blue-400 border-blue-500/30 bg-blue-500/10',    icon:'fa-flask text-blue-400',             block:'border-blue-500/30',      phase:'testing'},
+      COMPLETED:{badge:'text-green-400 border-green-500/30 bg-green-500/10', icon:'fa-circle-check text-green-400',     block:'border-green-500/40',     phase:'done'},
+      ERROR:    {badge:'text-red-400 border-red-500/30 bg-red-500/10',       icon:'fa-circle-xmark text-red-400',       block:'border-red-500/40',       phase:null},
+    };
+    const c = cfg[status]||cfg.QUEUED;
+    badge.className=`text-[10px] font-bold px-2 py-0.5 rounded border ${c.badge}`;
+    badge.textContent=status;
+    msgEl.textContent=msg;
+    icon.className=`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-slate-700`;
+    icon.innerHTML=`<i class="fa-solid ${c.icon} text-sm"></i>`;
+    block.className=`glass-panel rounded-xl p-4 mb-5 border ${c.block} transition-all duration-300`;
+    const phases=['backup','agents','testing','done'];
+    const activeIdx=c.phase?phases.indexOf(c.phase):-1;
+    phases.forEach((ph,idx)=>{
+      const el=document.getElementById(`phase-${ph}`);
+      if(!el)return;
+      const dot=el.querySelector('.phase-dot');
+      const lbl=el.querySelector('span:last-child');
+      if(idx<activeIdx){dot.className='phase-dot w-2 h-2 rounded-full bg-green-500';lbl.className='text-[10px] text-green-400 ml-1';}
+      else if(idx===activeIdx){dot.className=`phase-dot w-2 h-2 rounded-full ${status==='ERROR'?'bg-red-500':'bg-yellow-400'} pulse-glow`;lbl.className=`text-[10px] ml-1 ${status==='ERROR'?'text-red-400':'text-yellow-300 font-semibold'}`;}
+      else{dot.className='phase-dot w-2 h-2 rounded-full bg-slate-600';lbl.className='text-[10px] text-slate-500 ml-1';}
+    });
+    if(status==='COMPLETED'){const d=document.querySelector('#phase-done .phase-dot'),l=document.querySelector('#phase-done span:last-child');if(d)d.className='phase-dot w-2 h-2 rounded-full bg-green-500';if(l)l.className='text-[10px] text-green-400 ml-1';}
+  }
+
+  function updateAgentStatus(name,status,msg,data) {
+    if(name==='SYSTEM'){updateSystemBlock(status,msg);return;}
+    const container=document.getElementById('agent-statuses');
+    let card=document.getElementById(`card-${name}`);
+    const colors={READY:'text-green-400 border-green-500/30 bg-green-500/10',UPDATING:'text-yellow-400 border-yellow-500/30 bg-yellow-500/10',VERIFYING:'text-blue-400 border-blue-500/30 bg-blue-500/10',WORKING:'text-indigo-400 border-indigo-500/30 bg-indigo-500/10',ERROR:'text-red-400 border-red-500/30 bg-red-500/10'};
+    const colorClass=colors[status]||colors.READY;
+    if(!card){card=document.createElement('div');card.id=`card-${name}`;card.className='glass-panel p-4 rounded-xl transition-all duration-300';container.appendChild(card);}
+    const filesHtml=data.files_changed&&data.files_changed.length?`<div class="mt-3 pt-3 border-t border-slate-700/50"><div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-file-code text-indigo-400 mr-1"></i>Changed Files</div><div class="flex flex-wrap gap-1">${data.files_changed.map(f=>{const fname=f.split('/').pop();const color=f.endsWith('.xsd')?'text-amber-300 border-amber-500/40 bg-amber-500/10':f.endsWith('.py')?'text-green-300 border-green-500/40 bg-green-500/10':'text-blue-300 border-blue-500/40 bg-blue-500/10';return`<span class="px-1.5 py-0.5 rounded border ${color} text-[10px] mono" title="${f}">${fname}</span>`;}).join('')}</div></div>`:'';;
+    card.innerHTML=`<div class="flex justify-between items-start mb-2"><h4 class="font-bold text-white text-sm">${name}</h4><span class="text-[10px] font-bold px-2 py-0.5 rounded border ${colorClass}">${status}</span></div><p class="text-xs text-slate-400 leading-relaxed">${msg}</p>${filesHtml}`;
+  }
+
+  // ─── Test helpers ─────────────────────────────────────────────────────────
+  function fmtAmt(n){return n.toFixed(2);}
+  function ts(){return new Date().toISOString().replace('T',' ').slice(0,19)+'Z';}
+  function uid(){return 'T'+Date.now().toString().slice(-8);}
+
+  function buildScenarios(lim) {
+    const a=lim.test_amounts; const eff=lim.effective_limit;
+    const base = (note,amt,extra)=>`<?xml version="1.0" encoding="UTF-8"?>\n<upi:ReqPay xmlns:upi="http://npci.org/upi/schema/">\n  <upi:Head ver="1.0" ts="${ts()}" orgId="PAYERPSP" msgId="${uid()}" prodType="UPI"/>\n  <upi:Txn id="${uid()}" note="${note}" type="PAY"/>\n  <upi:purpose>00</upi:purpose>\n  <upi:purposeCode code="00" description="UPI Purpose 00"/>\n  <upi:Payer addr="ramesh@payer">\n    <upi:Amount value="${fmtAmt(amt)}" curr="INR"/>\n    <upi:Creds><upi:Cred><upi:Data code="1234"/></upi:Cred></upi:Creds>\n  </upi:Payer>\n  <upi:Payees><upi:Payee addr="merchant@benef"/></upi:Payees>${extra}\n</upi:ReqPay>`;
+    return {
+      basic: base(`Basic Test (10% ₹${eff.toLocaleString('en-IN')})`,a.safe,''),
+      highvalue: base(`High-Value (95% ₹${eff.toLocaleString('en-IN')})`,a.near_limit,'\n  <upi:HighValue>true</upi:HighValue>'),
+      risk: base(`Risk (50% ₹${eff.toLocaleString('en-IN')})`,a.mid,'\n  <upi:RiskScore>85</upi:RiskScore>'),
+      custom: base('Custom Test',a.safe,''),
+    };
+  }
+  const _defLimits={effective_limit:100_00_000,test_amounts:{safe:100,mid:500,near_limit:1000,over_limit:200_00_000}};
+  let testScenarios=buildScenarios(_defLimits);
+
+  async function refreshLimits(){
+    try{
+      const d=await(await fetch('/limits')).json();
+      _liveLimits=d; testScenarios=buildScenarios(d);
+      const b=document.getElementById('live-limit-badge');
+      if(b&&d.effective_limit){b.textContent='Limit: ₹'+(d.effective_limit/100000).toFixed(1)+'L';b.title=`P2P: ₹${d.p2p_limit.toLocaleString('en-IN')}  Max: ₹${d.max_txn_amount.toLocaleString('en-IN')}`;}
+    }catch(_){}
+  }
+
+  function loadTestScenario(s){
+    if(_liveLimits) testScenarios=buildScenarios(_liveLimits);
+    if(testScenarios[s]) document.getElementById('txn-xml').value=testScenarios[s];
+  }
+
+  async function runTestTransaction(){
+    const xml=document.getElementById('txn-xml').value;
+    if(!xml.trim()){alert('Provide XML to test.');return;}
+    flowSteps=[]; renderFlowTimeline();
+    document.getElementById('txn-final-status').innerText='';
+    document.getElementById('txn-result-footer').classList.add('hidden');
+    const testId=Date.now();
+    addTestResult({id:testId,name:`Test ${new Date().toLocaleTimeString()}`,status:'running',timestamp:new Date().toISOString()});
+    try{
+      const t0=performance.now();
+      const res=await fetch('/reqpay',{method:'POST',headers:{'Content-Type':'application/xml'},body:xml});
+      const lat=(performance.now()-t0).toFixed(2);
+      const data=await res.json();
+      const footer=document.getElementById('txn-result-footer');
+      const statusSpan=document.getElementById('txn-final-status');
+      footer.classList.remove('hidden');
+      let status,cls,success;
+      if(data.status==='ACK'||data.status==='SUCCESS'){status='SUCCESS';cls='font-bold text-green-400';success=true;}
+      else if(data.error){status='ERROR: '+data.error;cls='font-bold text-red-400';success=false;}
+      else{status=data.status||'UNKNOWN';cls='font-bold text-yellow-400';success=false;}
+      statusSpan.innerText=status;statusSpan.className=cls;
+      updateTestResult(testId,{status:success?'passed':'failed',result:data,latency:lat+'ms',message:success?'Transaction succeeded':(data.error||'Failed')});
+    }catch(e){updateTestResult(testId,{status:'error',message:'Network error: '+e.message});alert('Transaction failed: '+e.message);}
+  }
+
+  async function runTestSuite(){
+    const btn=document.getElementById('run-suite-btn');
+    btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Running…';
+    testResults=[];document.getElementById('test-results').innerHTML='';
+    await refreshLimits();testScenarios=buildScenarios(_liveLimits||_defLimits);
+    for(const s of['basic','highvalue','risk']){
+      document.getElementById('txn-xml').value=testScenarios[s];
+      await new Promise(r=>setTimeout(r,500));
+      await runTestTransaction();
+      await new Promise(r=>setTimeout(r,800));
+    }
+    btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-vial"></i> Run Test Suite';
+  }
+
+  function addTestResult(t){testResults.push(t);renderTestResults();}
+  function updateTestResult(id,upd){const t=testResults.find(t=>t.id===id);if(t){Object.assign(t,upd);renderTestResults();}}
+
+  function renderTestResults(){
+    const c=document.getElementById('test-results');
+    const s=document.getElementById('test-summary');
+    if(!testResults.length){c.innerHTML='<div class="text-xs text-slate-500 italic text-center py-8">No tests run yet</div>';if(s)s.textContent='';return;}
+    const passed=testResults.filter(t=>t.status==='passed').length;
+    const failed=testResults.filter(t=>t.status==='failed'||t.status==='error').length;
+    if(s)s.innerHTML=`<span class="text-green-400">${passed}✓</span> <span class="text-red-400">${failed}✗</span>`;
+    const cols={running:'border-blue-500/30 bg-blue-500/5',passed:'border-green-500/30 bg-green-500/5',failed:'border-red-500/30 bg-red-500/5',error:'border-orange-500/30 bg-orange-500/5'};
+    const icons={running:'fa-spinner fa-spin text-blue-400',passed:'fa-check-circle text-green-400',failed:'fa-times-circle text-red-400',error:'fa-exclamation-triangle text-orange-400'};
+    c.innerHTML=testResults.map(t=>{
+      const cc=cols[t.status]||cols.running;const ic=icons[t.status]||'fa-circle text-slate-400';
+      return `<div class="rounded-lg p-2.5 border ${cc} transition-all">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0"><i class="fa-solid ${ic} text-xs flex-shrink-0"></i><span class="text-xs font-semibold truncate">${t.name}</span></div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">${t.latency?`<span class="text-[9px] text-slate-500 mono">${t.latency}</span>`:''}<span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${t.status==='passed'?'bg-green-500/20 text-green-300':t.status==='failed'?'bg-red-500/20 text-red-300':'bg-blue-500/20 text-blue-300'}">${t.status.toUpperCase()}</span></div>
+        </div>
+        ${t.message?`<p class="text-[10px] text-slate-400 mt-1 truncate" title="${t.message}">${t.message}</p>`:''}
+        ${t.status==='running'?'<div class="mt-1 h-0.5 bg-slate-700 rounded overflow-hidden"><div class="h-full bg-blue-500 pulse-glow w-3/5"></div></div>':''}
+      </div>`;
+    }).join('');
+    c.scrollTop=c.scrollHeight;
+  }
+
+  async function submitFeedback(verdict){
+    const feedback=document.getElementById('pm-feedback').value;
+    const latest=testResults[testResults.length-1];
+    if(!latest){alert('Run a test first.');return;}
+    try{
+      const res=await fetch('/agents/pm-feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({verdict,feedback,test_id:latest.id,timestamp:new Date().toISOString()})});
+      if(!res.ok) throw new Error('Failed to save feedback');
+      document.getElementById('pm-feedback').value='';
+      const msgs={pass:'✅ Marked PASSED',fail:'❌ Marked FAILED','needs-work':'⚠️ Marked NEEDS WORK'};
+      const n=document.createElement('div');
+      n.className='fixed top-4 right-4 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-lg z-50 text-sm';
+      n.textContent=msgs[verdict]||'Feedback saved';document.body.appendChild(n);setTimeout(()=>n.remove(),2500);
+    }catch(e){alert('Feedback failed: '+e.message);}
+  }
+
+  // ─── Flow Timeline ────────────────────────────────────────────────────────
+  function handleXmlLog(data){
+    let label=data.source.replace(/\[.*?\]\s*/,'').trim();
+    const step={id:Date.now(),label,rawSource:data.source,content:data.content,timestamp:new Date().toLocaleTimeString()};
+    flowSteps.push(step);
+    renderFlowTimeline();
+    if(flowSteps.length===1) selectFlowStep(0);
+  }
+
+  function renderFlowTimeline(){
+    const c=document.getElementById('flow-timeline');
+    if(!flowSteps.length){c.innerHTML='<div class="text-xs text-slate-500 italic">Waiting for transaction…</div>';return;}
+    c.innerHTML='';
+    flowSteps.forEach((s,i)=>{
+      const el=document.createElement('div');
+      el.className='flow-step'+(i===flowSteps.length-1?' last':'');
+      el.id='fs-'+i;el.onclick=()=>selectFlowStep(i);
+      el.innerHTML=`<div class="step-dot"></div><div class="text-xs font-medium text-slate-300">${s.label}</div>${i<flowSteps.length-1?'<i class="fa-solid fa-arrow-right text-[9px] text-slate-600"></i>':''}`;
+      c.appendChild(el);
+    });
+    c.scrollLeft=c.scrollWidth;
+  }
+
+  function selectFlowStep(i){
+    document.querySelectorAll('.flow-step').forEach(e=>e.classList.remove('active'));
+    const el=document.getElementById('fs-'+i);if(el)el.classList.add('active');
+    const step=flowSteps[i];
+    const viewer=document.getElementById('flow-xml-viewer');
+    const ph=document.getElementById('flow-placeholder');
+    ph.classList.add('hidden');viewer.classList.remove('hidden');
+    viewer.innerHTML=highlightXml(step.content);
+  }
+
+  function highlightXml(xml){
+    let s=xml.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    ['purposeCode','Risk','HighValue','purpose'].forEach(tag=>{
+      const re=new RegExp(`(&lt;${tag}.*?&gt;|&lt;/${tag}&gt;)`,'g');
+      s=s.replace(re,'<span class="highlight-tag">$1</span>');
+    });
+    s=s.replace(/([a-zA-Z0-9_:-]+)=&quot;(.*?)&quot;/g,'<span class="text-purple-400">$1</span>=<span class="text-green-300">"$2"</span>');
+    return s;
+  }
+
+  // ─── Deploy Helpers ───────────────────────────────────────────────────────
+  async function loadDeployVersions(){
+    const sel=document.getElementById('deploy-version');
+    const baseSel=document.getElementById('plan-base-version');
+    const histList=document.getElementById('version-history-list');
+    try{
+      const data=await(await fetch('/deploy/versions')).json();
+      const versions=data.versions||[];
+      [sel,baseSel].forEach(s=>{
+        if(!s)return;
+        while(s.options.length>0)s.remove(0);
+        if(s===baseSel)s.add(new Option('Latest (current live)','',true,true));
+        if(!versions.length&&s===sel)s.add(new Option('No versions yet — run a PM prompt first','',true,true));
+        versions.forEach((v,i)=>{const lbl=_versionLabel(v);s.add(new Option(lbl,v.id,s===sel&&i===0,s===sel&&i===0));});
+      });
+      const cnt=document.getElementById('version-count-badge');if(cnt)cnt.textContent=versions.length+' versions';
+      if(histList){
+        if(!versions.length){histList.innerHTML='<div class="text-xs text-slate-500 italic text-center py-8">No versions yet.</div>';return;}
+        histList.innerHTML=versions.map((v,i)=>{
+          const seqVer=v.seq_version||v.version||'?';const desc=(v.description||v.id).slice(0,70);const isLatest=i===0;
+          const dateStr=v.timestamp?new Date(v.timestamp).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+          return `<div class="grid grid-cols-12 gap-2 items-center px-3 py-2.5 rounded-lg transition ${isLatest?'bg-rose-500/8 border border-rose-500/20':'hover:bg-slate-800/50 border border-transparent hover:border-slate-700/50'}">
+            <div class="col-span-1"><span class="text-xs font-black mono ${isLatest?'text-rose-300':'text-slate-300'}">v${seqVer}</span>${isLatest?'<div class="text-[8px] font-bold text-rose-400 uppercase mt-0.5">LATEST</div>':''}</div>
+            <div class="col-span-5 min-w-0"><div class="text-xs text-slate-200 truncate" title="${desc}">${desc}</div></div>
+            <div class="col-span-3"><div class="text-[10px] text-slate-500 mono">${dateStr}</div></div>
+            <div class="col-span-2">${isLatest?'<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">LATEST</span>':'<span class="text-[9px] text-slate-600">—</span>'}</div>
+            <div class="col-span-1 flex justify-end"><button onclick="selectVersionForDeploy('${v.id}')" class="px-2 py-1 rounded text-[10px] font-bold ${isLatest?'bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30':'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'} transition"><i class="fa-solid fa-rocket text-[9px]"></i></button></div>
+          </div>`;
+        }).join('');
+      }
+    }catch(e){if(histList)histList.innerHTML=`<div class="text-xs text-red-400 p-3">Failed: ${e.message}</div>`;}
+  }
+
+  function _versionLabel(v){const ver=v.seq_version||v.version||'?';const desc=(v.description||v.label||v.id).slice(0,50);let lbl=`v${ver} — ${desc}`;if(v.timestamp){const d=new Date(v.timestamp);lbl+=` (${d.toLocaleString('en-IN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})})`;}return lbl;}
+
+  function selectVersionForDeploy(id){const s=document.getElementById('deploy-version');if(s){s.value=id;s.classList.add('border-rose-400');setTimeout(()=>s.classList.remove('border-rose-400'),1500);}}
+
+  async function deploySelectedVersion(){
+    const sel=document.getElementById('deploy-version');const statusEl=document.getElementById('deploy-status');const btn=document.querySelector('[onclick="deploySelectedVersion()"]');
+    const version=sel?sel.value:'';if(!version){statusEl.textContent='Select a version.';return;}
+    const lbl=sel.options[sel.selectedIndex]?.textContent||version;
+    statusEl.innerHTML=`⏳ Deploying <strong>${lbl}</strong>…`;if(btn)btn.disabled=true;
+    try{
+      const data=await(await fetch('/deploy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version})})).json();
+      if(data.restarting){
+        statusEl.innerHTML=`✅ Deployed <strong>${lbl}</strong>. Server restarting…`;
+        let att=0;const poll=setInterval(async()=>{att++;try{const h=await fetch('/health');if(h.ok){clearInterval(poll);statusEl.innerHTML=`✅ <strong>${lbl}</strong> is live in Phase 1! <a href="/" target="_blank" class="text-indigo-400 underline">Open Phase 1 →</a>`;if(btn)btn.disabled=false;loadDeployVersions();}}catch(_){}if(att>30){clearInterval(poll);statusEl.textContent='Server took too long. Check backend.';if(btn)btn.disabled=false;}},1000);
+      }else{statusEl.textContent=data.message||'Deployed.';if(btn)btn.disabled=false;}
+    }catch(e){statusEl.textContent='Deploy failed: '+e.message;if(btn)btn.disabled=false;}
+  }
+
+  async function refreshGitInfo(){
+    const sEl=document.getElementById('git-status');const bEl=document.getElementById('git-branch');
+    if(!sEl||!bEl)return;
+    try{const d=await(await fetch('/git/info')).json();if(!d.is_repo){sEl.textContent=d.message||'Not a Git repo.';bEl.textContent='';return;}bEl.textContent='branch: '+(d.branch||'unknown');sEl.textContent=d.dirty?'Uncommitted changes.':'Working tree clean.';}
+    catch(e){sEl.textContent='Failed: '+e.message;bEl.textContent='';}
+  }
+
+  async function createGitCommit(){
+    const sEl=document.getElementById('git-status');if(!sEl)return;sEl.textContent='Creating commit…';
+    const msg=(currentPlan&&(currentPlan.description||currentPlan.version))||'UPI spec change via agents';
+    try{
+      const d=await(await fetch('/git/commit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})})).json();
+      if(!d.status||d.error) throw new Error(d.error||'Commit failed');
+      sEl.textContent=`Commit: ${d.commit_hash||''} ${d.commit_subject||''}`.trim();refreshGitInfo();
+    }catch(e){sEl.textContent='Commit failed: '+e.message;}
+  }
+
+  // ─── Utils ────────────────────────────────────────────────────────────────
+  function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  // ─── Init ─────────────────────────────────────────────────────────────────
+  document.getElementById('txn-xml').value = testScenarios.basic;
+  renderStageBar();
+  loadDeployVersions();
+  refreshGitInfo();
+  refreshLimits();
+</script>
+</body>
+</html>

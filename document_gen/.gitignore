@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+*ARCHITECTURE*.md
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Databases
+*.sqlite
+*.db
+
+# Backups and temporary files
+*.bak
+backups/
+temp.md
+hackathon-latest.zip
+
+# Logs
+*.log
+orchestrator_*.log
+app.log
+runner_app.log
+
+# Data / generated artifacts
+qdrant_data/
+docgen/outputs/
+docgen/vectorstore/
+docgen/uploads/
+
+# Frontend artifacts
+product-builder/node_modules/
+product-builder/dist/
+product-builder/node_modules.platform_backup_20260411/
+
+# OS files
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+.gemini/
+.agents/
+.claude/
+.codex/
+.cursor/

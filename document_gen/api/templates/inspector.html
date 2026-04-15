@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Inspector — UPI Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background:#f8fafc; color:#0f172a; }
+    .code-font { font-family: 'JetBrains Mono', monospace; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:#f1f5f9; }
+    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+
+    /* Sidebar */
+    .sidebar-group-label {
+      padding: 8px 16px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #94a3b8;
+    }
+    .file-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #334155;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      border-left: 3px solid transparent;
+    }
+    .file-btn:hover { background: #f1f5f9; color: #1e293b; }
+    .file-btn.active { background: #eff6ff; color: #1d4ed8; border-left-color: #3b82f6; }
+    .file-btn.changed { color: #92400e; }
+    .file-btn.changed .file-icon { color: #d97706; }
+    .file-icon { font-size: 11px; color: #94a3b8; flex-shrink: 0; }
+    .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .changed-dot { width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; }
+
+    /* Header bar */
+    .top-bar { background: #ffffff; border-bottom: 1px solid #e2e8f0; }
+    .sidebar { background: #ffffff; border-right: 1px solid #e2e8f0; width: 240px; }
+    .main-bg { background: #f8fafc; }
+
+    /* Code area */
+    .ln { display: inline-block; min-width: 2.8rem; text-align: right; color: #94a3b8; margin-right: .9rem; user-select: none; font-size: .68rem; }
+    .code-wrap { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; overflow-x: auto; }
+
+    /* Diff coloring */
+    .diff-add  { background: #dcfce7; color: #166534; display: block; }
+    .diff-del  { background: #fee2e2; color: #991b1b; display: block; }
+    .diff-info { color: #64748b; display: block; font-style: italic; }
+    .diff-hunk { color: #6366f1; display: block; margin-top: 8px; font-weight: 600; }
+    .diff-ctx  { color: #475569; display: block; }
+
+    /* Tabs */
+    .view-tab-btn {
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .15s;
+    }
+    .view-tab-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    .view-tab-btn.inactive { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+    .view-tab-btn.inactive:hover { background: #e2e8f0; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="top-bar flex items-center justify-between px-5 py-3 flex-shrink-0 shadow-sm">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-slate-500 hover:text-slate-800 text-sm flex items-center gap-1.5 font-medium transition">
+        <i class="fa-solid fa-home text-xs"></i> Phase 1
+      </a>
+      <span class="text-slate-300">|</span>
+      <a href="/phase2" class="text-slate-500 hover:text-slate-800 text-sm flex items-center gap-1.5 font-medium transition">
+        <i class="fa-solid fa-robot text-xs"></i> Phase 2
+      </a>
+      <span class="text-slate-300">|</span>
+      <span class="text-slate-900 font-bold text-sm flex items-center gap-2">
+        <i class="fa-solid fa-magnifying-glass-chart text-blue-500"></i> System Inspector
+      </span>
+    </div>
+
+    <!-- Version selector -->
+    <div class="flex items-center gap-3">
+      <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Compare with:</label>
+      <select id="version-select"
+        class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 min-w-[240px] shadow-sm">
+        <option value="">Live code only (no diff)</option>
+      </select>
+      <span id="changed-count" class="hidden text-[11px] px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 font-bold">
+        <i class="fa-solid fa-file-pen mr-1"></i><span id="changed-num">0</span> changed
+      </span>
+    </div>
+  </header>
+
+  <div class="flex flex-1 min-h-0 overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar flex flex-col flex-shrink-0 overflow-hidden">
+      <div class="px-4 py-2.5 border-b border-slate-200 bg-slate-50">
+        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Component Files</span>
+      </div>
+      <div id="file-list" class="flex-1 overflow-y-auto py-1">
+        {% for group, files in components.items() %}
+        <div class="sidebar-group-label">{{ group }}</div>
+        {% for f in files %}
+        <button onclick="selectFile('{{ f }}')"
+          id="btn-{{ f | replace('/', '_') | replace('.', '_') }}"
+          class="file-btn"
+          data-path="{{ f }}">
+          <i class="file-icon fa-regular fa-file-code"></i>
+          <span class="file-name" title="{{ f }}">{{ f.split('/')[-1] }}</span>
+          <span class="changed-dot hidden" title="Modified in selected version"></span>
+        </button>
+        {% endfor %}
+        {% endfor %}
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 min-w-0 flex flex-col main-bg overflow-hidden">
+
+      <!-- File header bar -->
+      <div id="file-header" class="px-5 py-3 bg-white border-b border-slate-200 flex items-center justify-between flex-shrink-0 hidden shadow-sm">
+        <div class="flex items-center gap-3 min-w-0">
+          <i class="fa-solid fa-file-code text-blue-500 flex-shrink-0"></i>
+          <span id="file-path" class="text-sm font-mono font-semibold text-slate-700 truncate"></span>
+          <span id="changed-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded border border-amber-400 bg-amber-50 text-amber-700">
+            <i class="fa-solid fa-pencil mr-1"></i>MODIFIED
+          </span>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button id="btn-tab-code" onclick="showCodeTab()" class="view-tab-btn active">
+            <i class="fa-solid fa-code mr-1"></i>Live Code
+          </button>
+          <button id="btn-tab-diff" onclick="showDiffTab()" class="view-tab-btn inactive">
+            <i class="fa-solid fa-code-compare mr-1"></i>Diff
+          </button>
+        </div>
+      </div>
+
+      <!-- Code view -->
+      <div id="view-code" class="flex-1 min-h-0 overflow-y-auto p-5">
+        <div id="placeholder" class="flex flex-col items-center justify-center h-full text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-5xl mb-4 text-slate-300"></i>
+          <p class="text-lg font-semibold text-slate-500">Select a file to inspect</p>
+          <p class="text-sm mt-1 text-slate-400">View live code and compare with any deployed version</p>
+        </div>
+        <div class="code-wrap hidden" id="code-wrap">
+          <pre id="code-content" class="code-font text-xs text-slate-800 leading-relaxed whitespace-pre-wrap"></pre>
+        </div>
+      </div>
+
+      <!-- Diff view -->
+      <div id="view-diff" class="hidden flex-1 min-h-0 overflow-y-auto p-5">
+        <div id="diff-placeholder" class="flex flex-col items-center justify-center h-full text-slate-400">
+          <i class="fa-solid fa-code-compare text-5xl mb-4 text-slate-300"></i>
+          <p class="text-base font-semibold text-slate-500">Select a version above to see the diff</p>
+        </div>
+        <div id="diff-content" class="hidden">
+          <div class="flex gap-5 mb-3 text-xs text-slate-500 font-medium">
+            <span class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded bg-red-100 border border-red-300 inline-block"></span> Removed (old version)
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded bg-green-100 border border-green-300 inline-block"></span> Added (live)
+            </span>
+          </div>
+          <div class="code-wrap">
+            <pre id="diff-lines" class="code-font text-xs leading-relaxed"></pre>
+          </div>
+        </div>
+        <div id="diff-no-change" class="hidden flex flex-col items-center justify-center h-full">
+          <i class="fa-solid fa-circle-check text-green-500 text-4xl mb-3"></i>
+          <p class="text-green-700 font-semibold">No changes — file is identical to selected version</p>
+        </div>
+        <div id="diff-no-backup" class="hidden flex flex-col items-center justify-center h-full text-slate-400">
+          <i class="fa-solid fa-file-circle-question text-3xl mb-3 text-slate-300"></i>
+          <p>File not found in selected backup (added after that version)</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    let currentFile    = null;
+    let currentVersion = '';
+    let changedFiles   = new Set();
+
+    // ── Load versions into dropdown ──────────────────────────────────────────
+    async function loadVersions() {
+      const sel = document.getElementById('version-select');
+      try {
+        const res  = await fetch('/deploy/versions');
+        const data = await res.json();
+        (data.versions || []).forEach(v => {
+          sel.add(new Option(v.label || v.id, v.id));
+        });
+        if (data.versions && data.versions.length > 0) {
+          sel.value      = data.versions[0].id;
+          currentVersion = data.versions[0].id;
+          await loadChangedFiles();
+        }
+      } catch(e) { console.error('Failed to load versions', e); }
+    }
+
+    document.getElementById('version-select').addEventListener('change', async function() {
+      currentVersion = this.value;
+      await loadChangedFiles();
+      if (currentFile) loadFile(currentFile);
+    });
+
+    // ── Load which files changed for selected version ────────────────────────
+    async function loadChangedFiles() {
+      changedFiles.clear();
+      if (!currentVersion) { updateChangedBadges(); return; }
+      try {
+        const res  = await fetch(`/inspector/changed-files?version=${encodeURIComponent(currentVersion)}`);
+        const data = await res.json();
+        let total  = 0;
+        Object.values(data.files || {}).forEach(group => {
+          group.forEach(f => { if (f.changed) { changedFiles.add(f.path); total++; } });
+        });
+        const badge = document.getElementById('changed-count');
+        const num   = document.getElementById('changed-num');
+        if (total > 0) { badge.classList.remove('hidden'); num.textContent = total; }
+        else           { badge.classList.add('hidden'); }
+        updateChangedBadges();
+      } catch(e) {}
+    }
+
+    function updateChangedBadges() {
+      document.querySelectorAll('.file-btn').forEach(btn => {
+        const path = btn.dataset.path;
+        const dot  = btn.querySelector('.changed-dot');
+        if (changedFiles.has(path)) {
+          dot.classList.remove('hidden');
+          btn.classList.add('changed');
+        } else {
+          dot.classList.add('hidden');
+          btn.classList.remove('changed');
+        }
+      });
+    }
+
+    // ── Select + load a file ─────────────────────────────────────────────────
+    function selectFile(path) {
+      currentFile = path;
+      document.querySelectorAll('.file-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.path === path);
+      });
+      loadFile(path);
+    }
+
+    async function loadFile(path) {
+      const url = `/inspector/file-content?file=${encodeURIComponent(path)}${currentVersion ? '&version='+encodeURIComponent(currentVersion) : ''}`;
+      try {
+        const res  = await fetch(url);
+        const data = await res.json();
+
+        document.getElementById('file-header').classList.remove('hidden');
+        document.getElementById('placeholder').classList.add('hidden');
+        document.getElementById('file-path').textContent = path;
+
+        const cb = document.getElementById('changed-badge');
+        if (data.changed && currentVersion) cb.classList.remove('hidden');
+        else                                cb.classList.add('hidden');
+
+        // Render code with line numbers
+        const lines = (data.content || '').split('\n');
+        const codeEl = document.getElementById('code-content');
+        document.getElementById('code-wrap').classList.remove('hidden');
+        codeEl.innerHTML = lines.map((line, i) =>
+          `<span class="ln">${i+1}</span>${escHtml(line)}`
+        ).join('\n');
+
+        renderDiff(data);
+      } catch(e) { console.error(e); }
+    }
+
+    function renderDiff(data) {
+      const placeholder = document.getElementById('diff-placeholder');
+      const content     = document.getElementById('diff-content');
+      const noChange    = document.getElementById('diff-no-change');
+      const noBackup    = document.getElementById('diff-no-backup');
+      const linesEl     = document.getElementById('diff-lines');
+
+      [placeholder, content, noChange, noBackup].forEach(el => el.classList.add('hidden'));
+
+      if (!currentVersion)     { placeholder.classList.remove('hidden'); return; }
+      if (!data.backup_found)  { noBackup.classList.remove('hidden');    return; }
+      if (!data.changed || (data.diff||[]).length === 0) { noChange.classList.remove('hidden'); return; }
+
+      linesEl.innerHTML = (data.diff || []).map(line => {
+        if (line.startsWith('+++') || line.startsWith('---')) {
+          return `<span class="diff-info">${escHtml(line)}</span>`;
+        } else if (line.startsWith('@@')) {
+          return `<span class="diff-hunk">${escHtml(line)}</span>`;
+        } else if (line.startsWith('+')) {
+          return `<span class="diff-add">${escHtml(line)}</span>`;
+        } else if (line.startsWith('-')) {
+          return `<span class="diff-del">${escHtml(line)}</span>`;
+        } else {
+          return `<span class="diff-ctx">${escHtml(line)}</span>`;
+        }
+      }).join('\n');
+      content.classList.remove('hidden');
+    }
+
+    function showCodeTab() {
+      document.getElementById('view-code').classList.remove('hidden');
+      document.getElementById('view-diff').classList.add('hidden');
+      document.getElementById('btn-tab-code').className = 'view-tab-btn active';
+      document.getElementById('btn-tab-diff').className = 'view-tab-btn inactive';
+    }
+    function showDiffTab() {
+      document.getElementById('view-code').classList.add('hidden');
+      document.getElementById('view-diff').classList.remove('hidden');
+      document.getElementById('btn-tab-diff').className = 'view-tab-btn active';
+      document.getElementById('btn-tab-code').className = 'view-tab-btn inactive';
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    loadVersions();
+  </script>
+</body>
+</html>

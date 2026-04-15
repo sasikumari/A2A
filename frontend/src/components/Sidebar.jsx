@@ -1,6 +1,7 @@
 import useSessionStore from '../store/sessionStore'
 
 function RobotIcon({ className = 'w-6 h-6' }) {
+
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor"
          strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
@@ -47,12 +48,22 @@ const STEPS = [
       </svg>
     ),
   },
+  {
+    key: 'documents',
+    label: 'Document Suite',
+    sublabel: 'BRD · TSD · Circular · Note',
+    icon: (
+      <svg className="w-[17px] h-[17px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar() {
   const {
     currentStep, setStep,
-    requirementStatus, researchStatus, canvasStatus,
+    requirementStatus, researchStatus, canvasStatus, docStatus,
     currentView, setView,
     user, logout,
   } = useSessionStore()
@@ -72,6 +83,10 @@ export default function Sidebar() {
       return <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Done</span>
     if (key === 'canvas' && canvasStatus === 'ready')
       return <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Done</span>
+    if (key === 'documents' && docStatus === 'completed')
+      return <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Done</span>
+    if (key === 'documents' && docStatus === 'generating')
+      return <span className="text-xs font-semibold text-accent-500 dark:text-accent-400 animate-pulse">Generating…</span>
     return null
   }
 

@@ -5,6 +5,7 @@ import StepIndicator from './components/StepIndicator'
 import RequirementChat from './pages/RequirementChat'
 import ResearchReport from './pages/ResearchReport'
 import ProductCanvas from './pages/ProductCanvas'
+import DocumentGeneration from './pages/DocumentGeneration'
 import HistoryPortal from './pages/HistoryPortal'
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
               {currentStep === 'requirement' && <RequirementChat />}
               {currentStep === 'research'    && <ResearchReport />}
               {currentStep === 'canvas'      && <ProductCanvas />}
+              {currentStep === 'documents'   && <DocumentGeneration />}
             </div>
           </div>
         )}

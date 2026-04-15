@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  docgen:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      - ./vectorstore:/app/vectorstore
+    environment:
+      - MODEL_NAME=${MODEL_NAME:-gpt-oss:120b-cloud}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - TEMPERATURE=${TEMPERATURE:-0.3}
+      - HOST=0.0.0.0
+      - PORT=8000
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # GPU support (uncomment if you have NVIDIA GPU + nvidia-docker):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  ollama_data:

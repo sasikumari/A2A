@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://npci.org/upi/schema/"
+           xmlns="http://npci.org/upi/schema/"
+           elementFormDefault="qualified">
+
+  <!-- Simple type for Amount value with constraints -->
+  <xs:simpleType name="AmountValueType">
+    <xs:restriction base="xs:decimal">
+      <xs:fractionDigits value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Simple type for RiskScore with two fractional digits -->
+  <xs:simpleType name="RiskScoreType">
+    <xs:restriction base="xs:decimal">
+      <xs:fractionDigits value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="CollectRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="PayeeVPA" type="xs:string"/>
+        <xs:element name="PayerVPA" type="xs:string"/>
+        <xs:element name="Amount">
+          <xs:complexType>
+            <xs:attribute name="value" type="AmountValueType" use="required">
+              <xs:annotation>
+                <xs:documentation>Amount value, decimal with two fractional digits.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="curr" type="xs:string" use="required">
+              <xs:annotation>
+                <xs:documentation>Currency code, e.g., INR.</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Note" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Note value should be 'verified versioning'.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="TransactionId" type="xs:string"/>
+        <xs:element name="ReferenceId" type="xs:string" minOccurs="0"/>
+        <xs:element name="PurposeCode" type="xs:string" minOccurs="0"/>
+        <xs:element name="purpose" type="xs:string"/>
+        <xs:element name="NewField" type="xs:string"/>
+        <!-- New field added as per specification change -->
+        <xs:element name="AdditionalInfo" type="xs:string" minOccurs="0"/>
+        <!-- New extensions element added -->
+        <xs:element name="extensions" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Added ReqPay element with the new purpose field as required and RiskScore -->
+  <xs:element name="ReqPay">
+    <xs:complexType>
+      <xs:sequence>
+        <!-- Head element -->
+        <xs:element name="Head" type="xs:string" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Request header with version and timestamp.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <!-- Txn element -->
+        <xs:element name="Txn" type="xs:string" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Transaction details including type and id.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <!-- purpose is optional as per spec -->
+        <xs:element name="purpose" type="xs:string" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Purpose of the transaction.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <!-- optional purposeCode -->
+        <xs:element name="purposeCode" type="xs:string" minOccurs="0"/>
+        <!-- Payer element -->
+        <xs:element name="Payer" type="xs:string" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Payer details including VPA and name.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <!-- Payees element -->
+        <xs:element name="Payees" type="xs:string" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>List of payees with their details.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="RiskScore" type="RiskScoreType" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Risk score associated with the transaction; decimal with two fractional digits.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <!-- optional HighValue field -->
+        <xs:element name="HighValue" type="xs:string" minOccurs="0"/>
+        <!-- New extensions element added to ReqPay -->
+        <xs:element name="extensions" type="xs:string" minOccurs="0"/>
+        <!-- Additional fields for ReqPay can be added here as needed -->
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

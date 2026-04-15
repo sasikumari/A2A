@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<upi:ReqPay xmlns:upi="http://npci.org/upi/schema/" xmlns="http://npci.org/upi/schema/">
+  <!-- ======== HEADER BLOCK ======== -->
+  <Head 
+      ver="1.0" 
+      ts="2025-11-10T12:00:00Z" 
+      orgId="PAYERPSP001" 
+      msgId="MSG123456" 
+      prodType="UPI" />
+
+  <!-- ======== TRANSACTION DETAILS ======== -->
+  <Txn 
+      id="T1234567890" 
+      note="Demo Payment to Merchant" 
+      custRef="REF123456789" 
+      refId="ORDER987654321" 
+      refUrl="https://merchant.example.com/order/987654321" 
+      ts="2025-11-10T12:00:05Z"
+      refCategory="MERCHANTPAY" 
+      type="PAY" 
+      orgTxnId="TXN_INIT_001" 
+      purpose="GOODS" 
+      initiationMode="PUSH">
+    <QR  
+        qVer="02" 
+        ts="2025-11-10T12:00:03Z" 
+        qrMedium="STATIC" 
+        expireTs="2025-11-10T12:05:00Z" 
+        query="upi://pay?pa=merchant@benef&amp;pn=Merchant+Store&amp;am=75.50&amp;cu=INR&amp;tn=Demo"
+        verToken="TOKEN001" 
+        stan="123456"/>
+  </Txn>
+
+  <!-- ======== PAYER SECTION ======== -->
+  <Payer 
+      addr="ramesh@payer" 
+      name="ramesh Payer" 
+      seqNum="001" 
+      type="PERSON" 
+      code="PAYER001">
+    <Info>
+      <Identity 
+          id="ABCDE1234F" 
+          type="PAN" 
+          verifiedName="ramesh Payer"/>
+    </Info>
+
+    <Device>
+      <Tag name="MOBILE" value="9999912345"/>
+      <Tag name="GEOCODE" value="26.2183,78.1828"/>
+      <Tag name="LOCATION" value="Gwalior"/>
+      <Tag name="IP" value="192.168.1.12"/>
+      <Tag name="TYPE" value="ANDROID"/>
+      <Tag name="ID" value="DEVICE12345"/>
+      <Tag name="OS" value="13.0"/>
+      <Tag name="APP" value="PayerUPI"/>
+      <Tag name="CAPABILITY" value="PIN"/>
+      <Tag name="TELECOM" value="Jio"/>
+      <Tag name="cardAccpTrId" value="TX1234"/>
+      <Tag name="cardAccIdCode" value="CRD001"/>
+      <Tag name="posEntryCode" value="01"/>
+      <Tag name="posServCdnCode" value="001"/>
+    </Device>
+
+    <Ac addrType="ACCOUNT">
+      <Detail name="IFSC" value="PAYERBANK001"/>
+      <Detail name="ACTYPE" value="SAVINGS"/>
+      <Detail name="ACNUM" value="1234567890123456"/>
+    </Ac>
+    <Consent name="GST" type="PAN" value="ABCDE1234F"/>
+
+    <Amount value="100.00" curr="INR"/>
+
+    <Creds>
+      <Cred type="PIN" subType="MPIN">
+        <Data code="1234" Ki="KEY001">Encrypted PIN Data</Data>
+      </Cred>
+    </Creds>
+  </Payer>
+
+  <!-- ======== PAYEE SECTION ======== -->
+  <Payees>
+    <Payee 
+        addr="aman@benef" 
+        name="Merchant Store" 
+        seqNum="001" 
+        type="ENTITY" 
+        code="MERCHANT001">
+      <Institution 
+          QrPayLoad="upi://pay?pa=merchant@benef&amp;am=75.50" 
+          conCode="UPI001" 
+          netInstId="BENEF001"/>
+      <Merchant>
+        <Identifier 
+            subCode="M001" 
+            mid="MID987654321" 
+            sid="SID12345" 
+            tid="TID98765"
+            merchantType="LARGE" 
+            merchantGenre="ONLINE" 
+            onBoardingType="BANK" 
+            pinCode="474001"
+            regIdNo="REG12345" 
+            tier="1"/>
+        <Ownership type="PRIVATE"/>
+        <Invoice name="Invoice123" num="INV987654" date="2025-11-10"/>
+      </Merchant>
+      <Info>
+        <Identity 
+            id="MERCHANTPAN9999" 
+            type="PAN" 
+            verifiedName="Merchant Store"/>
+      </Info>
+      <Device>
+        <Tag name="MOBILE" value="8888812345"/>
+        <Tag name="GEOCODE" value="26.2145,78.1702"/>
+        <Tag name="LOCATION" value="Gwalior Mall"/>
+        <Tag name="IP" value="10.10.1.1"/>
+        <Tag name="TYPE" value="POS"/>
+        <Tag name="ID" value="POS123"/>
+        <Tag name="OS" value="v2.1"/>
+        <Tag name="APP" value="MerchantPOS"/>
+        <Tag name="CAPABILITY" value="PIN"/>
+        <Tag name="TELECOM" value="Airtel"/>
+      </Device>
+      <Ac addrType="ACCOUNT">
+        <Detail name="IFSC" value="BENEFBANK001"/>
+        <Detail name="ACTYPE" value="CURRENT"/>
+        <Detail name="ACNUM" value="9876543210987654"/>
+      </Ac>
+      <Consent name="GST" type="PAN" value="MERCHANTPAN9999"/>
+      <Amount value="100.00" curr="INR"/>
+    </Payee>
+  </Payees>
+</upi:ReqPay>

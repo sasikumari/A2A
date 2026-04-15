@@ -1,0 +1,378 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI payment flow is a streamlined process involving several key participants: the NPCI, PSP Bank, Issuer Bank, Beneficiary Bank, and the UPI App. The process begins with the customer initiating a payment request through the UPI App, which is hosted by the PSP Bank. The app captures the customer's authentication details, such as a PIN or biometric data, and encrypts this information using the Common Library provided by NPCI. The PSP Bank then sends a payment request to NPCI, which acts as the central switch, routing the request to the appropriate banks involved in the transaction.",
+      "Currently, the system handles payment requests by first authenticating the transaction through the Issuer Bank, which verifies the customer's credentials and debits the payer's account. Once authentication is successful, NPCI forwards a debit request to the Issuer Bank, which processes the debit and sends a response back to NPCI. Subsequently, NPCI routes the credit request to the Beneficiary Bank, which credits the recipient's account and confirms the transaction back to NPCI. Finally, NPCI sends a confirmation message to both the payer and payee PSPs, completing the transaction cycle. This process ensures a secure and efficient transfer of funds between parties."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI system, while robust, faces several limitations that impact its efficiency and security. These challenges need to be addressed to ensure seamless transactions and compliance with evolving regulatory standards. Identifying these limitations is crucial for stakeholders such as banks, PSPs, and NPCI to enhance the UPI ecosystem and maintain its competitive edge."
+    ],
+    "bullet_points": [
+      "Security Vulnerabilities: Affects PSP Banks and Issuer Banks. Current encryption methods may not be sufficient against advanced cyber threats, potentially leading to unauthorized access and fraud.",
+      "User Experience Friction: Affects UPI App users and PSP Banks. The multi-step authentication process can be cumbersome, leading to higher drop-off rates and reduced transaction completion.",
+      "Scalability Constraints: Affects NPCI and PSP Banks. The existing infrastructure may struggle to handle the increasing volume of transactions, risking service outages and delays.",
+      "Regulatory Compliance Gaps: Affects NPCI and all participating banks. The system may not fully align with new regulatory requirements, leading to potential legal and financial penalties."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The proposed change is driven by the need to align with the latest RBI guidelines that mandate enhanced security measures in digital payment systems. As the UPI ecosystem continues to grow, ensuring the security and integrity of transactions has become paramount. This change addresses the regulatory requirement to incorporate advanced authentication mechanisms, such as biometric verification, which are deemed more secure than traditional PIN-based methods. By adhering to these guidelines, NPCI and participating banks can mitigate risks associated with fraudulent transactions and unauthorized access, thereby maintaining trust and compliance within the ecosystem.",
+      "In addition to regulatory compliance, the proposed change offers significant benefits in terms of user experience and operational efficiency. Biometric authentication provides a seamless and user-friendly experience, reducing friction during the transaction process. This approach was chosen over alternatives like multi-factor authentication due to its ability to offer both security and convenience. Furthermore, the integration of biometric capabilities aligns with the technological advancements in mobile devices, ensuring that the UPI system remains at the forefront of innovation. By implementing this change, NPCI and its partners can enhance customer satisfaction while simultaneously strengthening the security framework of the UPI platform."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers i. Product Description.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The enrollment process for UPI services is designed to be seamless and user-friendly, ensuring that customers can quickly and securely set up their accounts for transactions. The process begins with the user accessing the UPI App, where the option to enroll in UPI services is prominently displayed on the home screen. This placement ensures easy access and encourages user participation. Upon selecting the enrollment option, users are guided through a series of steps that capture their consent and necessary details, ensuring compliance with regulatory requirements.",
+      "The indicative user journey involves several key steps, starting with the user providing their mobile number and selecting their bank from a list. The UPI App then communicates with the PSP Bank to initiate the enrollment process. The PSP Bank, in turn, interacts with the NPCI to verify the user's details and ensure that the mobile number is linked to the bank account. Once verified, the Issuer Bank is responsible for authenticating the user and setting up the UPI ID. This collaborative process ensures that all stakeholders are aligned and that the user's enrollment is completed efficiently."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify mobile number and bank account linkage",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "User selects bank and enters mobile number",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Initiate enrollment request",
+          "PSP Bank"
+        ],
+        [
+          "Step 3",
+          "Verify user details and mobile number linkage",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Authenticate user and set up UPI ID",
+          "Issuer Bank"
+        ],
+        [
+          "Post Response",
+          "Confirm enrollment and notify user",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers iii. Product Construct: Transaction Flow.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Opt-in for biometric authentication is mandatory for all UPI Apps integrating with the latest Common Library version. Users must explicitly consent to enable biometric features.",
+      "2. Device constraints dictate that only devices with a Trusted Execution Environment (TEE) or Secure Enclave are eligible for biometric authentication to ensure secure storage of sensitive data.",
+      "3. In the event of a transaction failure due to network issues, the PSP Bank must implement a retry logic with a maximum of three attempts before notifying the user of the failure.",
+      "4. Users can withdraw consent for biometric authentication at any time through the UPI App settings, which will disable biometric transactions and revert to PIN-based authentication.",
+      "5. Backward compatibility must be maintained for all UPI transactions, ensuring that users on older versions of the UPI App can still perform transactions without biometric authentication.",
+      "6. Exception handling requires that any transaction marked with a DEEMED status must be resolved within 24 hours by the Beneficiary Bank, with status updates communicated to both the PSP Bank and the user."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of this feature does not alter the existing dispute management process. All transactions conducted under this new feature will adhere to the standard UPI dispute framework. This ensures consistency and reliability in handling any transaction discrepancies that may arise. Stakeholders, including banks and PSPs, can continue to rely on the established processes for resolving disputes.",
+      "Under the standard UPI dispute framework, the liability for resolving disputes remains with the respective banks involved in the transaction. The Issuer Bank is responsible for addressing disputes related to debits, while the Beneficiary Bank handles disputes concerning credits. The Service Level Agreement (SLA) for dispute resolution is maintained at the current standard, which typically requires resolution within T+2 days. Escalation paths remain unchanged, with initial resolution attempts handled by the respective banks, escalating to NPCI only if necessary."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "This section outlines the functional requirements necessary for the implementation of the new feature within the UPI ecosystem. These requirements are designed to ensure seamless integration and operation across all participants, including NPCI, PSP Banks, Issuer Banks, and Beneficiary Banks. Each requirement is crafted to be specific, measurable, and testable, providing clear guidance for development and testing teams. The priorities assigned to each requirement reflect the criticality and impact on the overall system functionality."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall encrypt all payment credentials using the Common Library before transmission.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall authenticate transactions using biometric data when refCategory is '05'.",
+          "High"
+        ],
+        [
+          "FR-03",
+          "The system shall support device onboarding through the REQ_ACTIVATION message.",
+          "Medium"
+        ],
+        [
+          "FR-04",
+          "The system shall allow users to perform balance enquiries via the REQ_BAL_ENQ message.",
+          "Medium"
+        ],
+        [
+          "FR-05",
+          "The system shall validate Virtual Payment Addresses (VPAs) using the REQ_VAL_ADD message.",
+          "Medium"
+        ],
+        [
+          "FR-06",
+          "The system shall handle transaction status checks with the REQ_CHK_TXN message for timeout resolution.",
+          "High"
+        ],
+        [
+          "FR-07",
+          "The system shall provide confirmation of payment to both Payer and Payee PSPs post transaction.",
+          "High"
+        ],
+        [
+          "FR-08",
+          "The system shall ensure that all transactions are routed through the NPCI switch for processing.",
+          "High"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The NPCI platform and Common Library (CL) are undergoing several enhancements to improve the enrollment and setting flow for UPI transactions. These changes are designed to streamline the registration process, enhance security, and ensure seamless integration across all participants in the UPI ecosystem. The updates include modifications to existing API messages, changes in schema fields, and updates to the CL version to support new functionalities.",
+      "Each change has been carefully considered to align with the strategic objectives of the UPI platform, ensuring that all stakeholders, including PSP Banks, Issuer Banks, and Beneficiary Banks, can implement these changes effectively. Below is a detailed enumeration of the required changes, specifying what each change entails, the relevant API or schema, and the responsible participant for implementation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The introduction of a new API message, REQ_ACTIVATION, is required for device onboarding and biometric activation. This change must be implemented by PSP Banks to facilitate secure and efficient registration of new devices.",
+      "Schema fields related to the REQ_REG_MOB message will be updated to include additional parameters for enhanced device registration. Issuer Banks are responsible for integrating these schema changes to support the updated registration process.",
+      "The Common Library (CL) version will be upgraded to version 2.36 to support biometric authentication features. All UPI Apps must incorporate this updated CL version to ensure compatibility with the new biometric capabilities.",
+      "A new configuration flag will be introduced to manage the activation of biometric settings. NPCI will oversee the implementation of this flag, while PSP Banks will need to configure it within their systems to enable or disable biometric features as required."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The National Payments Corporation of India (NPCI) is implementing several changes to the UPI transaction flow to enhance the efficiency and security of the payment process. These changes are primarily focused on routing, processing, and validation within the UPI platform and the Common Library (CL). The modifications aim to streamline transaction handling, improve credential validation, and optimize response processing. These enhancements are crucial for maintaining the robustness of the UPI ecosystem and ensuring seamless interoperability among participants.",
+      "NPCI will introduce specific changes in the handling of biometric-authenticated transactions, identified by the refCategory='05'. Additionally, the credential validation process will be fortified to ensure that only authenticated transactions proceed through the system. The NPCI switch will undergo routing updates to better manage transaction loads and reduce latency. Furthermore, response handling mechanisms will be refined to ensure timely and accurate feedback to all involved parties, thereby minimizing transaction disputes and enhancing user satisfaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI will implement enhanced routing protocols for transactions marked with refCategory='05', ensuring that biometric-authenticated payments are processed with priority and accuracy.",
+      "2. Credential validation will be strengthened by NPCI through the integration of advanced cryptographic techniques within the Common Library, ensuring that all transaction credentials are securely verified before processing.",
+      "3. The NPCI switch will be updated to incorporate dynamic routing capabilities, allowing for real-time adjustments based on transaction volume and network conditions, thereby optimizing transaction flow and reducing processing delays.",
+      "4. NPCI will refine the response handling process by implementing a standardized feedback mechanism that provides immediate and clear transaction status updates to both the Payer PSP and Payee PSP, reducing the likelihood of disputes and enhancing transparency."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI App and PSP must implement several changes to facilitate seamless enrollment, consent capture, and device binding. These changes are essential to ensure secure transactions and user authentication. The modifications will enhance user experience while maintaining compliance with NPCI guidelines. The following requirements outline the necessary updates to be made on the app side.",
+      "Each requirement is designed to optimize the interaction between the UPI App, PSP, and the NPCI infrastructure. These changes will involve updates to the user interface, invocation of the Common Library (CL) SDK, local key storage, and device check logic. The UPI App and PSP are responsible for implementing these changes to ensure a secure and efficient user experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. The UPI App must update its user interface to include a clear and intuitive consent capture mechanism. This will ensure users are fully informed and can easily provide consent for transactions.",
+      "2. The PSP is required to invoke the CL SDK during the enrollment process to securely handle authentication data. This ensures that all sensitive information is encrypted and transmitted securely to NPCI.",
+      "3. The UPI App must implement local key storage using the device's TEE or Secure Enclave. This will securely store cryptographic keys used for transaction authentication, preventing unauthorized access.",
+      "4. The PSP must integrate device check logic to verify the integrity and security of the user's device before proceeding with enrollment and transactions. This step is crucial to prevent fraudulent activities and ensure compliance with security standards."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "This section outlines the necessary changes to be implemented by the UPI App and PSP during the transaction time. These changes are critical to enhance the security, reliability, and user experience of the payment process. The focus is on credential capture, invocation of the Common Library (CL), handling of fallback scenarios, and the presentation of transaction responses.",
+      "By implementing these changes, PSPs and UPI Apps will ensure a seamless and secure transaction experience for users. The enhancements will also facilitate better integration with NPCI's systems, thereby improving the overall efficiency and effectiveness of the UPI ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The UPI App must capture user credentials, such as PIN or biometric data, securely using the Common Library (CL) provided by NPCI. This ensures that the credentials are encrypted and protected during transmission.",
+      "The PSP is required to invoke the CL at the time of transaction initiation to encrypt the credential block (CRED Block) before sending the payment request to NPCI. This step is crucial for maintaining the integrity and confidentiality of user data.",
+      "In the event of a transaction timeout or failure, the PSP must implement a robust fallback mechanism. This includes sending a REQ_CHK_TXN to NPCI to verify the transaction status and ensure that duplicate transactions are avoided.",
+      "The UPI App should present the transaction response to the user in a clear and concise manner. This includes displaying the transaction status, amount, and any relevant messages from the PSP or NPCI to ensure transparency and user satisfaction."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank is required to implement several changes to enhance authentication and registration processes under the new feature set. These changes are crucial to ensure secure and efficient handling of user credentials and transaction authentication. The Issuer Bank must focus on storing, validating, and responding to specific data elements to comply with the updated requirements.",
+      "The following numbered requirements outline the necessary changes for the Issuer Bank. Each requirement is designed to improve the security and reliability of the authentication and registration processes, ensuring that user credentials are managed effectively and transactions are authenticated accurately."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The Issuer Bank must store encrypted credential blocks (CRED Block) securely within its systems to ensure that sensitive authentication data is protected against unauthorized access.",
+      "The Issuer Bank is required to validate the authenticity of the nonce-based challenge received during the authentication process to prevent replay attacks and ensure transaction integrity.",
+      "The Issuer Bank must respond to REQ_AUTH_DETAILS messages by verifying the user's authentication details and providing a timely RESP_AUTH_DETAILS response to NPCI.",
+      "The Issuer Bank is responsible for maintaining a record of the clVersion field to ensure compatibility with biometric support and to facilitate seamless integration with the Common Library (CL) provided by NPCI."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank will undergo several modifications to enhance the processing of authenticated debit requests under the new feature. These changes are designed to improve the efficiency and security of transactions, ensuring a seamless experience for the end-user. The adjustments will focus on credential and authentication validation, debit processing, response code management, timeout handling, and fallback procedures.",
+      "Each change is aimed at optimizing the transaction flow and minimizing potential disruptions. The Issuer Bank will need to ensure that its systems are updated to accommodate these changes, working closely with NPCI and PSP Banks to implement the necessary updates. This will involve both technical and operational adjustments to align with the new requirements."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Credential and Authentication Validation: The Issuer Bank must enhance its systems to validate credentials and authentication details received from NPCI. This includes ensuring compatibility with the latest CL version supporting biometric authentication.",
+      "2. Debit Processing: The Issuer Bank is required to update its debit processing logic to handle authenticated debit requests efficiently. This involves integrating new security protocols to ensure transactions are processed securely and accurately.",
+      "3. Response Codes: The Issuer Bank must implement updated response codes to reflect the status of debit transactions accurately. This includes handling scenarios where transactions are deemed or settled asynchronously.",
+      "4. Timeout Handling and Fallback: The Issuer Bank needs to establish robust timeout handling mechanisms to manage transaction delays effectively. Additionally, fallback procedures must be in place to ensure continuity of service in case of system failures or network issues."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

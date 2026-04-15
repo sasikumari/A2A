@@ -22,6 +22,16 @@ def init_rag_client(retriever):
     logger.info(f"RAG client initialized in '{config.RAG_MODE}' mode")
 
 
+def query_rag_sync(
+    query: str,
+    context: Optional[str] = None,
+    top_k: int = 6,
+    knowledge_type: Optional[str] = None,
+) -> dict:
+    """Sync version of query_rag for use in sync LangGraph nodes."""
+    return _local_query(query, top_k, knowledge_type)
+
+
 async def query_rag(
     query: str,
     context: Optional[str] = None,
@@ -39,7 +49,10 @@ async def query_rag(
 
 def _local_query(query: str, top_k: int, knowledge_type: Optional[str]) -> dict:
     if _retriever is None:
-        raise RuntimeError("RAG client not initialized. Call init_rag_client() at startup.")
+        # RAG index is still being built in the background — return empty context
+        # so agents can continue with LLM-only generation.
+        logger.warning("RAG client not yet ready — returning empty context for query: %s", query)
+        return {"results": [], "enriched_context": ""}
     results = _retriever.retrieve(query, top_k=top_k, knowledge_type=knowledge_type)
     enriched_context = _retriever.build_context_string(results)
     return {"results": results, "enriched_context": enriched_context}

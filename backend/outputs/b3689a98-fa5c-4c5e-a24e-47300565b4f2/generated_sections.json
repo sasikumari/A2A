@@ -1,0 +1,117 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All Product Managers, Engineers, and Compliance Teams**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the UPI ecosystem operates with a robust framework for transaction processing, authentication, and settlement across multiple banking entities and applications. However, there is a growing need to enhance the security and efficiency of biometric-authenticated transactions, particularly in light of increasing transaction volumes and user demand for seamless experiences. The existing system does not fully leverage the potential of biometric data and secure enclave technology, which can significantly improve transaction security and reduce fraud. In response, the issuer has decided to implement new directives to standardize the use of biometric authentication and secure enclave integration across all UPI applications, ensuring a consistent and secure user experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enhance the UPI system by introducing biometric authentication support for transactions. This decision affects the Common Library (CL), the UPI App, and the REQ_PAY message flow.",
+      "The CL version will be updated to include biometric capabilities, specifically indicated by the clVersion field. This update is crucial for ensuring secure and efficient biometric authentication during UPI transactions.",
+      "The REQ_PAY message flow will now incorporate a refCategory='05' to designate transactions authenticated via biometric means. This change is essential for distinguishing biometric transactions within the UPI system.",
+      "The UPI App must integrate the updated CL to support biometric authentication, ensuring compliance with the new security protocols. This integration is mandatory for all UPI Apps to maintain interoperability within the UPI ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must ensure that their UPI Apps are updated to integrate the latest version of the Common Library (CL) to support biometric authentication. This includes ensuring compatibility with clVersion 2.36 or higher for ListAccPvd requests.",
+      "Issuer/Remitter Banks must implement support for REQ_AUTH_DETAILS and RESP_AUTH_DETAILS messages to facilitate biometric authentication processes. Banks are advised to conduct thorough testing to ensure seamless transaction flows.",
+      "Beneficiary/Payee Banks must update their systems to handle DEEMED status transactions efficiently. This involves ensuring that asynchronous settlement processes are robust and do not result in transaction delays.",
+      "UPI App developers must incorporate the TEE or Secure Enclave for storing sensitive authentication data securely. Developers are advised to implement nonce-based challenges to prevent replay attacks."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must ensure that the new feature specifications are integrated into the product development lifecycle. This includes updating all relevant documentation and aligning project timelines accordingly.",
+      "Engineers are advised to review the technical requirements and ensure compatibility with existing systems. Necessary updates to the codebase and infrastructure must be completed prior to the feature rollout.",
+      "Compliance teams must evaluate the feature against current regulatory standards and ensure all compliance documentation is updated. Any discrepancies must be reported immediately for resolution."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

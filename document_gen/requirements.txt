@@ -1,0 +1,18 @@
+# --- Titan Engine Frameworks ---
+flask
+xmlschema
+requests
+PyJWT
+SQLAlchemy>=2.0
+python-pptx
+PyPDF2
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+python-docx
+python-dotenv
+qdrant-client
+openai
+redis
+kafka-python
