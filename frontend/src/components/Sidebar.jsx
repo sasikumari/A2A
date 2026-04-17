@@ -104,7 +104,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 shrink-0 flex flex-col h-full
+    <aside className="w-64 shrink-0 flex flex-col h-screen sticky top-0
                       bg-white dark:bg-navy-900
                       border-r border-slate-200 dark:border-navy-700">
 
