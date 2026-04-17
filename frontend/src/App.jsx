@@ -6,6 +6,7 @@ import RequirementChat from './pages/RequirementChat'
 import ResearchReport from './pages/ResearchReport'
 import ProductCanvas from './pages/ProductCanvas'
 import DocumentGeneration from './pages/DocumentGeneration'
+import PrototypeGeneration from './pages/PrototypeGeneration'
 import HistoryPortal from './pages/HistoryPortal'
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
   const isHistory = currentView === 'history'
 
   return (
-    <div className="min-h-screen min-h-dvh flex bg-slate-50 dark:bg-navy-950">
+    <div className="h-screen h-dvh flex overflow-hidden bg-slate-50 dark:bg-navy-950">
       {/* Sidebar */}
       <Sidebar />
 
@@ -40,6 +41,7 @@ function App() {
               {currentStep === 'research'    && <ResearchReport />}
               {currentStep === 'canvas'      && <ProductCanvas />}
               {currentStep === 'documents'   && <DocumentGeneration />}
+              {currentStep === 'prototype'   && <PrototypeGeneration />}
             </div>
           </div>
         )}

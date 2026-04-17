@@ -602,12 +602,18 @@ export default function DocumentGeneration() {
           Back to Canvas
         </button>
         {allDone && completedCount > 0 && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          <button
+            onClick={() => useSessionStore.getState().setStep('prototype')}
+            className="btn-primary gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 4.5h3M9 7.5h.008v.008H9V7.5Z" />
             </svg>
-            {completedCount} document{completedCount !== 1 ? 's' : ''} ready — download above
-          </p>
+            Generate UI Prototype
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
         )}
       </div>
 

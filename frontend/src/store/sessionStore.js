@@ -98,6 +98,22 @@ const useSessionStore = create((set, get) => ({
   setDocBundle: (data) => set({ docBundle: data, docStatus: data?.overall_status || 'idle' }),
   clearDocBundle: () => set({ docBundle: null, docStatus: 'idle' }),
 
+  // ── Agent 5: Prototype Generation ────────────────────────
+  prototypeHtml: null,
+  prototypeStatus: 'idle',   // idle | generating | ready | failed
+  prototypeFeature: null,
+  prototypeScreenCount: 0,
+  setPrototypeState: (data) => set({
+    prototypeHtml: data.prototype_html ?? null,
+    prototypeStatus: data.status ?? 'idle',
+    prototypeFeature: data.feature_name ?? null,
+    prototypeScreenCount: data.screen_count ?? 0,
+  }),
+  clearPrototype: () => set({
+    prototypeHtml: null, prototypeStatus: 'idle',
+    prototypeFeature: null, prototypeScreenCount: 0,
+  }),
+
   // ── UI State ──────────────────────────────────────────────
   loading: false,
   setLoading: (v) => set({ loading: v }),

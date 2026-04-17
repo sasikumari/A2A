@@ -47,6 +47,13 @@ export const exportCanvas = (session_id, format = 'docx') =>
     responseType: 'blob',
   })
 
+// Agent 5 — Prototype Generation
+export const generatePrototype = (session_id, brd_content, feature_name = '') =>
+  api.post('/prototype/generate', { session_id, brd_content, feature_name })
+
+export const getPrototypeState = (session_id) =>
+  api.get(`/prototype/${session_id}`)
+
 // History
 export const listHistory = () =>
   api.get('/history')
